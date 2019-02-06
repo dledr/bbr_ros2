@@ -31,6 +31,7 @@ add_library(${PROJECT_NAME} SHARED
 
 ament_target_dependencies(${PROJECT_NAME}
   rosbag2_storage
+  rosbag2_storage_default_plugins
   rclcpp
   rcutils
   SQLite3

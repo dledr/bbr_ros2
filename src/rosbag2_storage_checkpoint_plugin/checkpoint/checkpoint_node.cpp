@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_default_plugins/checkpoint/checkpoint_node.hpp"
+#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.hpp"
 
 
 namespace rosbag2_storage_plugins
