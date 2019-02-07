@@ -16,11 +16,7 @@
 #define ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_HELPER_HPP_
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
-
-// #include "rclcpp/rclcpp.hpp"
-// #include "std_msgs/msg/string.hpp"
-
-//#include "rosbag2_storage/serialized_bag_message.hpp"
+#include "rosbag2_storage/serialized_bag_message.hpp"
 
 #include "Poco/RandomStream.h"
 
@@ -34,9 +30,8 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
  public:
   CheckpointHelper();
 
-  std::string createNonce();
+  std::shared_ptr<rcutils_uint8_array_t> createNonce();
 
- private:
 };
 
 }  // namespace rosbag2_storage_plugins

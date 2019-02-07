@@ -14,20 +14,30 @@
 
 #include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.hpp"
 
+//#include <iostream>
+
+#include "rosbag2_storage/metadata_io.hpp"
+#include "rosbag2_storage/ros_helper.hpp"
+
 namespace rosbag2_storage_plugins
 {
 
 CheckpointHelper::CheckpointHelper()
 {}
 
-std::string CheckpointHelper::createNonce()
+std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::createNonce()
 {
-  char seed[NONCESIZE];
+  char nonce[NONCESIZE];
   Poco::RandomInputStream rnd;
-  rnd.read(seed, sizeof(seed));
-  std::string nonce(seed);
+  rnd.read(nonce, sizeof(nonce));
+//  char seed[] = { 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+//                  0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+//                  0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
+//                  0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,};
+//  std::string str_nonce(nonce);
+//  std::cout << "Nonce: " << str_nonce;
 
-  return nonce;
+  return rosbag2_storage::make_serialized_message(nonce, NONCESIZE);;
 }
 
 }  // namespace rosbag2_storage_plugins
