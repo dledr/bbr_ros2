@@ -146,7 +146,8 @@ void CheckpointStorage::initialize()
     "id INTEGER PRIMARY KEY," \
     "name TEXT NOT NULL," \
     "type TEXT NOT NULL," \
-    "serialization_format TEXT NOT NULL);";
+    "serialization_format TEXT NOT NULL,"
+    "checkpoint_nonce BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
   create_table = "CREATE TABLE messages(" \
     "id INTEGER PRIMARY KEY," \

@@ -23,7 +23,7 @@
 namespace rosbag2_storage_plugins
 {
 
-const u_int NONCESIZE = 32;
+const size_t NONCESIZE = 32;
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
 {
