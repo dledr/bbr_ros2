@@ -39,6 +39,7 @@ namespace rosbag2_storage_plugins
 
 CheckpointStorage::CheckpointStorage()
 : node_(),
+  helper_(),
   database_(),
   write_statement_(nullptr),
   read_statement_(nullptr),
@@ -46,6 +47,7 @@ CheckpointStorage::CheckpointStorage()
   current_message_row_(nullptr, SqliteStatementWrapper::QueryResult<>::Iterator::POSITION_END)
 {
   node_ = std::make_shared<CheckpointNode>("_rosbag2");
+  helper_ = std::make_shared<CheckpointHelper>();
 }
 
 void CheckpointStorage::open(

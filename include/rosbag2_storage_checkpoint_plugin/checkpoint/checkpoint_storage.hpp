@@ -25,6 +25,7 @@
 #include "rosbag2_storage/storage_interfaces/read_write_interface.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
 #include "rosbag2_storage/topic_metadata.hpp"
+#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.hpp"
 #include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.hpp"
 #include "rosbag2_storage_default_plugins/sqlite/sqlite_wrapper.hpp"
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
@@ -78,6 +79,7 @@ private:
     std::shared_ptr<rcutils_uint8_array_t>, rcutils_time_point_value_t, std::string>;
 
   std::shared_ptr<CheckpointNode> node_;
+  std::shared_ptr<CheckpointHelper> helper_;
   std::shared_ptr<SqliteWrapper> database_;
   std::string database_name_;
   SqliteStatement write_statement_;
