@@ -17,6 +17,8 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(poco_vendor REQUIRED)
+find_package(Poco COMPONENTS Crypto)
 find_package(rclcpp REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosbag2_storage REQUIRED)
@@ -26,6 +28,7 @@ find_package(SQLite3 REQUIRED)  # provided by sqlite3_vendor
 find_package(std_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
+  src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.cpp
   src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.cpp
   src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_storage.cpp)
 
@@ -36,6 +39,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rcutils
   SQLite3
   pluginlib
+  Poco
   std_msgs)
 
 target_include_directories(${PROJECT_NAME}
@@ -63,6 +67,6 @@ install(
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(rosbag2_storage rosbag2_storage_default_plugins rclcpp rcutils sqlite3_vendor SQLite3 std_msgs)
+ament_export_dependencies(poco_vendor Poco rosbag2_storage rosbag2_storage_default_plugins rclcpp rcutils sqlite3_vendor SQLite3 std_msgs)
 
 ament_package()
