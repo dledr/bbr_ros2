@@ -17,6 +17,7 @@
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
+#include "rosbag2_storage/topic_metadata.hpp"
 
 #include "Poco/Crypto/DigestEngine.h"
 #include "Poco/RandomStream.h"
@@ -45,6 +46,11 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
   CheckpointHelper();
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
+
+  std::shared_ptr<rcutils_uint8_array_t> computeGenesis(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      const rosbag2_storage::TopicMetadata & topic);
+
   std::shared_ptr<rcutils_uint8_array_t> computeHash(
       std::shared_ptr<rcutils_uint8_array_t> nonce,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
