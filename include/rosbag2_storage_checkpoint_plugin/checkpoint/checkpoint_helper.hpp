@@ -18,12 +18,26 @@
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
 
+#include "Poco/Crypto/DigestEngine.h"
 #include "Poco/RandomStream.h"
 
 namespace rosbag2_storage_plugins
 {
 
-const size_t NONCESIZE = 32;
+const size_t NONCE_SIZE = 32;
+
+class SHA256Engine
+    : public Poco::Crypto::DigestEngine {
+ public:
+  enum {
+    BLOCK_SIZE = 64,
+    DIGEST_SIZE = NONCE_SIZE
+  };
+
+  SHA256Engine()
+      : DigestEngine("SHA256")
+  {}
+};
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
 {
@@ -31,6 +45,12 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
   CheckpointHelper();
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
+  std::shared_ptr<rcutils_uint8_array_t> computeHash(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
+
+ private:
+  std::shared_ptr<SHA256Engine> sha256engine_;
 
 };
 

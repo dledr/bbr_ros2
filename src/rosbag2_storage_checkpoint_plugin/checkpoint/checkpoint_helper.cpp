@@ -22,11 +22,13 @@ namespace rosbag2_storage_plugins
 {
 
 CheckpointHelper::CheckpointHelper()
-{}
+{
+  sha256engine_ = std::make_shared<SHA256Engine>();
+}
 
 std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::createNonce()
 {
-  char nonce[NONCESIZE];
+  char nonce[NONCE_SIZE];
   Poco::RandomInputStream rnd;
   rnd.read(nonce, sizeof(nonce));
 //  char seed[] = { 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f,
@@ -36,7 +38,21 @@ std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::createNonce()
 //  std::string str_nonce(nonce);
 //  std::cout << "Nonce: " << str_nonce;
 
-  return rosbag2_storage::make_serialized_message(nonce, NONCESIZE);;
+  return rosbag2_storage::make_serialized_message(nonce, NONCE_SIZE);;
+}
+
+
+std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::computeHash(
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
+{
+  sha256engine_->reset();
+  sha256engine_->update(nonce->buffer, nonce->buffer_length);
+  sha256engine_->update(message->time_stamp);
+  sha256engine_->update(message->serialized_data->buffer, message->serialized_data->buffer_length);
+  Poco::DigestEngine::Digest hash = sha256engine_->digest();
+
+  return rosbag2_storage::make_serialized_message(reinterpret_cast<char*>(hash.data()), NONCE_SIZE);;
 }
 
 }  // namespace rosbag2_storage_plugins
