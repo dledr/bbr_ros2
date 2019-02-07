@@ -102,10 +102,10 @@ void CheckpointStorage::write(std::shared_ptr<const rosbag2_storage::SerializedB
             "' has not been created yet! Call 'create_topic' first.");
   }
 
-  topic_entry->second.nonce = helper_->computeHash(topic_entry->second.nonce, message);
-  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.nonce);
+  topic_entry->second.hash = helper_->computeHash(topic_entry->second.hash, message);
+  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.hash);
   write_statement_->execute_and_reset();
-  node_->publish_checkpoint(topic_entry->second.nonce, message);
+  node_->publish_checkpoint(topic_entry->second.hash, message);
 }
 
 bool CheckpointStorage::has_next()
@@ -170,7 +170,7 @@ void CheckpointStorage::create_topic(const rosbag2_storage::TopicMetadata & topi
     insert_topic->execute_and_reset();
     CheckpointStorage::TopicInfo topic_info;
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
-    topic_info.nonce = checkpoint_nonce;
+    topic_info.hash = checkpoint_nonce;
     topics_.emplace(topic.name, topic_info);
   }
 }
