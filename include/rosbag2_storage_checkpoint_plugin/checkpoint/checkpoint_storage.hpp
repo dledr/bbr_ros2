@@ -86,7 +86,11 @@ private:
   SqliteStatement read_statement_;
   ReadQueryResult message_result_;
   ReadQueryResult::Iterator current_message_row_;
-  std::unordered_map<std::string, int> topics_;
+  struct TopicInfo {
+    int id;
+    std::shared_ptr<rcutils_uint8_array_t> nonce;
+  } ;
+  std::unordered_map<std::string, TopicInfo> topics_;
   std::vector<rosbag2_storage::TopicMetadata> all_topics_and_types_;
 };
 

@@ -102,7 +102,8 @@ void CheckpointStorage::write(std::shared_ptr<const rosbag2_storage::SerializedB
             "' has not been created yet! Call 'create_topic' first.");
   }
 
-  write_statement_->bind(message->time_stamp, topic_entry->second, message->serialized_data);
+  topic_entry->second.nonce = helper_->computeHash(topic_entry->second.nonce, message);
+  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.nonce);
   write_statement_->execute_and_reset();
   node_->publish_checkpoint(message);
 }
@@ -153,7 +154,8 @@ void CheckpointStorage::initialize()
     "id INTEGER PRIMARY KEY," \
     "topic_id INTEGER NOT NULL," \
     "timestamp INTEGER NOT NULL, " \
-    "data BLOB NOT NULL);";
+    "data BLOB NOT NULL,"
+    "checkpoint_hash BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
 }
 
@@ -162,17 +164,21 @@ void CheckpointStorage::create_topic(const rosbag2_storage::TopicMetadata & topi
   if (topics_.find(topic.name) == std::end(topics_)) {
     auto insert_topic =
       database_->prepare_statement(
-      "INSERT INTO topics (name, type, serialization_format) VALUES (?, ?, ?)");
-    insert_topic->bind(topic.name, topic.type, topic.serialization_format);
+      "INSERT INTO topics (name, type, serialization_format, checkpoint_nonce) VALUES (?, ?, ?, ?)");
+    auto checkpoint_nonce = helper_->createNonce();
+    insert_topic->bind(topic.name, topic.type, topic.serialization_format, checkpoint_nonce);
     insert_topic->execute_and_reset();
-    topics_.emplace(topic.name, static_cast<int>(database_->get_last_insert_id()));
+    CheckpointStorage::TopicInfo topic_info;
+    topic_info.id = static_cast<int>(database_->get_last_insert_id());
+    topic_info.nonce = checkpoint_nonce;
+    topics_.emplace(topic.name, topic_info);
   }
 }
 
 void CheckpointStorage::prepare_for_writing()
 {
   write_statement_ = database_->prepare_statement(
-    "INSERT INTO messages (timestamp, topic_id, data) VALUES (?, ?, ?);");
+    "INSERT INTO messages (timestamp, topic_id, data, checkpoint_hash) VALUES (?, ?, ?, ?);");
 }
 
 void CheckpointStorage::prepare_for_reading()
