@@ -105,7 +105,7 @@ void CheckpointStorage::write(std::shared_ptr<const rosbag2_storage::SerializedB
   topic_entry->second.nonce = helper_->computeHash(topic_entry->second.nonce, message);
   write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.nonce);
   write_statement_->execute_and_reset();
-  node_->publish_checkpoint(message);
+  node_->publish_checkpoint(topic_entry->second.nonce, message);
 }
 
 bool CheckpointStorage::has_next()

@@ -34,7 +34,9 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointNode
   explicit CheckpointNode(const std::string & node_name);
   ~CheckpointNode() override = default;
 
-  void publish_checkpoint(std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
+  void publish_checkpoint(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
   rclcpp::TimerBase::SharedPtr timer_;

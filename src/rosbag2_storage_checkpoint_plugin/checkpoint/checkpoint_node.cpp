@@ -24,11 +24,17 @@ CheckpointNode::CheckpointNode(const std::string & node_name)
   publisher_ = this->create_publisher<std_msgs::msg::String>("_checkpoint");
 }
 
-void CheckpointNode::publish_checkpoint(std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
+void CheckpointNode::publish_checkpoint(
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
   auto msg = std_msgs::msg::String();
 //  message.data = "Hello, world! " + std::to_string(count_++);
-  msg.data = "Topic: " + message->topic_name + " Time: " + std::to_string(message->time_stamp);
+  msg.data =
+      "Topic: " + message->topic_name +
+      " Time: " + std::to_string(message->time_stamp);// +
+//      " Checkpoint: " + std::string(reinterpret_cast<char*>(nonce->buffer));
+  (void) nonce;
   RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", msg.data.c_str());
   publisher_->publish(msg);
 }
