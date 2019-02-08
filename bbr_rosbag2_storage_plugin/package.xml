@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rosbag2_storage_bbr_plugin</name>
+  <name>bbr_rosbag2_storage_plugin</name>
   <version>0.0.1</version>
   <description>ROSBag2 Bbr storage plugin</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>

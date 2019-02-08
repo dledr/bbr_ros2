@@ -1,4 +1,4 @@
-<library path="rosbag2_storage_bbr_plugin">
+<library path="bbr_rosbag2_storage_plugin">
   <class
     name="bbr"
     type="rosbag2_storage_plugins::BbrStorage"

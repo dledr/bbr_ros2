@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_bbr_plugin/bbr/bbr_storage.hpp"
+#include "bbr_rosbag2_storage_plugin/bbr/bbr_storage.hpp"
 
 #include <sys/stat.h>
 
@@ -46,7 +46,7 @@ BbrStorage::BbrStorage()
   message_result_(nullptr),
   current_message_row_(nullptr, SqliteStatementWrapper::QueryResult<>::Iterator::POSITION_END)
 {
-  node_ = std::make_shared<BbrNode>("_rosbag2");
+  node_ = std::make_shared<BbrNode>("rosbag2_bbr");
   helper_ = std::make_shared<BbrHelper>();
 }
 
@@ -105,7 +105,7 @@ void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessa
   topic_entry->second.hash = helper_->computeHash(topic_entry->second.hash, message);
   write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.hash);
   write_statement_->execute_and_reset();
-  node_->publish_bbr(topic_entry->second.hash, topic_entry->second.nonce, message);
+  node_->publish_checkpoint(topic_entry->second.hash, topic_entry->second.nonce, message);
 }
 
 bool BbrStorage::has_next()
@@ -172,6 +172,7 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
     topic_info.hash = bbr_nonce;
     topic_info.nonce = bbr_nonce;
+    node_->create_record(bbr_nonce, topic);
     topics_.emplace(topic.name, topic_info);
   }
 }
