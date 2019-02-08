@@ -19,7 +19,7 @@ namespace rosbag2_storage_plugins
 {
 
 BbrNode::BbrNode(const std::string & node_name)
-    : rclcpp::Node(node_name), count_(0)
+: rclcpp::Node(node_name)
 {
   checkpoint_publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint");
 }
