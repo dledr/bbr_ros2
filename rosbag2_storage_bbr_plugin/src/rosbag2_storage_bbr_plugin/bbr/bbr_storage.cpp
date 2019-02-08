@@ -105,7 +105,7 @@ void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessa
   topic_entry->second.hash = helper_->computeHash(topic_entry->second.hash, message);
   write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.hash);
   write_statement_->execute_and_reset();
-  node_->publish_bbr(topic_entry->second.hash, message);
+  node_->publish_bbr(topic_entry->second.hash, topic_entry->second.nonce, message);
 }
 
 bool BbrStorage::has_next()
@@ -171,6 +171,7 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
     BbrStorage::TopicInfo topic_info;
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
     topic_info.hash = bbr_nonce;
+    topic_info.nonce = bbr_nonce;
     topics_.emplace(topic.name, topic_info);
   }
 }

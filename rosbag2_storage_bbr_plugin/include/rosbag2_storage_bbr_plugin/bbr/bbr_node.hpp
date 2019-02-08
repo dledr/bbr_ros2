@@ -17,6 +17,8 @@
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 
+#include "bbr_msgs/msg/checkpoint.hpp"
+
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
@@ -36,11 +38,12 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
 
   void publish_bbr(
       std::shared_ptr<rcutils_uint8_array_t> hash,
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_;
+  rclcpp::Publisher<bbr_msgs::msg::Checkpoint>::SharedPtr publisher_;
   size_t count_;
 };
 

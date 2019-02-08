@@ -16,6 +16,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(bbr_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(poco_vendor REQUIRED)
 find_package(Poco COMPONENTS Crypto)
@@ -33,6 +34,7 @@ add_library(${PROJECT_NAME} SHARED
   src/rosbag2_storage_bbr_plugin/bbr/bbr_storage.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
+  bbr_msgs
   rosbag2_storage
   rosbag2_storage_default_plugins
   rclcpp
@@ -67,6 +69,6 @@ install(
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(poco_vendor Poco rosbag2_storage rosbag2_storage_default_plugins rclcpp rcutils sqlite3_vendor SQLite3 std_msgs)
+ament_export_dependencies(bbr_msgs poco_vendor Poco rosbag2_storage rosbag2_storage_default_plugins rclcpp rcutils sqlite3_vendor SQLite3 std_msgs)
 
 ament_package()

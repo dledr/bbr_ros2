@@ -8,6 +8,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>bbr_msgs</depend>
   <depend>pluginlib</depend>
   <depend>poco_vendor</depend>
   <depend>rcutils</depend>
