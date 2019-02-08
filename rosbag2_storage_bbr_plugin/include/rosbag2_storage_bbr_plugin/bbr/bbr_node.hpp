@@ -17,12 +17,16 @@
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 
+#include <chrono>
+
 #include "bbr_msgs/msg/checkpoint.hpp"
+#include "bbr_msgs/srv/create_record.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 
 #include "rosbag2_storage/serialized_bag_message.hpp"
+#include "rosbag2_storage/topic_metadata.hpp"
 
 using namespace std::chrono_literals;
 
@@ -36,6 +40,10 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
   explicit BbrNode(const std::string & node_name);
   ~BbrNode() override = default;
 
+  void create_record(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      const rosbag2_storage::TopicMetadata & topic);
+
   void publish_checkpoint(
       std::shared_ptr<rcutils_uint8_array_t> hash,
       std::shared_ptr<rcutils_uint8_array_t> nonce,
@@ -44,6 +52,7 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
  private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_publisher_;
+  rclcpp::Client<bbr_msgs::srv::CreateRecord>::SharedPtr record_client_;
 };
 
 }  // namespace rosbag2_storage_plugins

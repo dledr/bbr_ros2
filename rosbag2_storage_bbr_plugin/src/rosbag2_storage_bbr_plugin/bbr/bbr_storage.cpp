@@ -172,6 +172,7 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
     topic_info.hash = bbr_nonce;
     topic_info.nonce = bbr_nonce;
+    node_->create_record(bbr_nonce, topic);
     topics_.emplace(topic.name, topic_info);
   }
 }
