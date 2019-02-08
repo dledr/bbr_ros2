@@ -21,7 +21,7 @@ namespace rosbag2_storage_plugins
 BbrNode::BbrNode(const std::string & node_name)
     : rclcpp::Node(node_name), count_(0)
 {
-  publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint");
+  checkpoint_publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint");
 }
 
 void BbrNode::publish_checkpoint(
@@ -34,7 +34,7 @@ void BbrNode::publish_checkpoint(
   msg.hash.data = std::vector<uint8_t>(hash->buffer, hash->buffer + hash->buffer_length);
   msg.nonce.data = std::vector<uint8_t>(nonce->buffer, nonce->buffer + nonce->buffer_length);
   RCLCPP_INFO(this->get_logger(), "Publishing checkpoint: '%s'", message->topic_name.c_str());
-  publisher_->publish(msg);
+  checkpoint_publisher_->publish(msg);
 }
 
 }  // namespace rosbag2_storage_plugins

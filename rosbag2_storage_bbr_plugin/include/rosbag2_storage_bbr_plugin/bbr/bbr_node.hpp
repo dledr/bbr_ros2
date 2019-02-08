@@ -43,7 +43,7 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
 
  private:
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<bbr_msgs::msg::Checkpoint>::SharedPtr publisher_;
+  rclcpp::Publisher<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_publisher_;
   size_t count_;
 };
 
