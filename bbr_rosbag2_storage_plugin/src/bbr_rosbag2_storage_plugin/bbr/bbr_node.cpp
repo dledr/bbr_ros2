@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_bbr_plugin/bbr/bbr_node.hpp"
+#include "bbr_rosbag2_storage_plugin/bbr/bbr_node.hpp"
 
 
 namespace rosbag2_storage_plugins
