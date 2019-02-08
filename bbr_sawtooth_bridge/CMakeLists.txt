@@ -70,7 +70,6 @@ ament_target_dependencies(bridge
   Poco
   poco_vendor
   rclcpp
-  rclcpp
   rcutils
   std_msgs)
 
