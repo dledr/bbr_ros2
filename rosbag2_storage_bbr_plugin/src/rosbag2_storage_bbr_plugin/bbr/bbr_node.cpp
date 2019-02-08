@@ -24,7 +24,7 @@ BbrNode::BbrNode(const std::string & node_name)
   publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint");
 }
 
-void BbrNode::publish_bbr(
+void BbrNode::publish_checkpoint(
     std::shared_ptr<rcutils_uint8_array_t> hash,
     std::shared_ptr<rcutils_uint8_array_t> nonce,
     std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)

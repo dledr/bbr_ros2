@@ -36,7 +36,7 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
   explicit BbrNode(const std::string & node_name);
   ~BbrNode() override = default;
 
-  void publish_bbr(
+  void publish_checkpoint(
       std::shared_ptr<rcutils_uint8_array_t> hash,
       std::shared_ptr<rcutils_uint8_array_t> nonce,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
