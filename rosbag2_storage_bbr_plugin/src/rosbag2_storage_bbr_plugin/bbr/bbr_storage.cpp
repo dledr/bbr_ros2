@@ -46,7 +46,7 @@ BbrStorage::BbrStorage()
   message_result_(nullptr),
   current_message_row_(nullptr, SqliteStatementWrapper::QueryResult<>::Iterator::POSITION_END)
 {
-  node_ = std::make_shared<BbrNode>("_rosbag2");
+  node_ = std::make_shared<BbrNode>("rosbag2_bbr");
   helper_ = std::make_shared<BbrHelper>();
 }
 
