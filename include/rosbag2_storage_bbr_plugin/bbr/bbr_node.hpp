@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_NODE_HPP_
-#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_NODE_HPP_
+#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_NODE_HPP_
+#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_NODE_HPP_
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 
@@ -27,14 +27,14 @@ using namespace std::chrono_literals;
 namespace rosbag2_storage_plugins
 {
 
-class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointNode
+class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
     : public rclcpp::Node
 {
  public:
-  explicit CheckpointNode(const std::string & node_name);
-  ~CheckpointNode() override = default;
+  explicit BbrNode(const std::string & node_name);
+  ~BbrNode() override = default;
 
-  void publish_checkpoint(
+  void publish_bbr(
       std::shared_ptr<rcutils_uint8_array_t> hash,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
@@ -46,4 +46,4 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointNode
 
 }  // namespace rosbag2_storage_plugins
 
-#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_NODE_HPP_
+#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_NODE_HPP_

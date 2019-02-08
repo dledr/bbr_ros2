@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_STORAGE_HPP_
-#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_STORAGE_HPP_
+#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_STORAGE_HPP_
+#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_STORAGE_HPP_
 
 #include <memory>
 #include <string>
@@ -25,8 +25,8 @@
 #include "rosbag2_storage/storage_interfaces/read_write_interface.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
 #include "rosbag2_storage/topic_metadata.hpp"
-#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.hpp"
-#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.hpp"
+#include "rosbag2_storage_bbr_plugin/bbr/bbr_helper.hpp"
+#include "rosbag2_storage_bbr_plugin/bbr/bbr_node.hpp"
 #include "rosbag2_storage_default_plugins/sqlite/sqlite_wrapper.hpp"
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 
@@ -41,12 +41,12 @@
 namespace rosbag2_storage_plugins
 {
 
-class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointStorage
+class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrStorage
   : public rosbag2_storage::storage_interfaces::ReadWriteInterface
 {
 public:
-  CheckpointStorage();
-  ~CheckpointStorage() override = default;
+  BbrStorage();
+  ~BbrStorage() override = default;
 
   void open(
     const std::string & uri,
@@ -78,8 +78,8 @@ private:
   using ReadQueryResult = SqliteStatementWrapper::QueryResult<
     std::shared_ptr<rcutils_uint8_array_t>, rcutils_time_point_value_t, std::string>;
 
-  std::shared_ptr<CheckpointNode> node_;
-  std::shared_ptr<CheckpointHelper> helper_;
+  std::shared_ptr<BbrNode> node_;
+  std::shared_ptr<BbrHelper> helper_;
   std::shared_ptr<SqliteWrapper> database_;
   std::string database_name_;
   SqliteStatement write_statement_;
@@ -100,4 +100,4 @@ private:
 # pragma warning(pop)
 #endif
 
-#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_STORAGE_HPP_
+#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_STORAGE_HPP_

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rosbag2_storage_checkpoint_plugin</name>
+  <name>rosbag2_storage_bbr_plugin</name>
   <version>0.0.1</version>
-  <description>ROSBag2 Checkpoint storage plugin</description>
+  <description>ROSBag2 Bbr storage plugin</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
   <license>Apache License 2.0</license>
 

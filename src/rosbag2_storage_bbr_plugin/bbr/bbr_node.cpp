@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.hpp"
+#include "rosbag2_storage_bbr_plugin/bbr/bbr_node.hpp"
 
 
 namespace rosbag2_storage_plugins
 {
 
-CheckpointNode::CheckpointNode(const std::string & node_name)
+BbrNode::BbrNode(const std::string & node_name)
     : rclcpp::Node(node_name), count_(0)
 {
-  publisher_ = this->create_publisher<std_msgs::msg::String>("_checkpoint");
+  publisher_ = this->create_publisher<std_msgs::msg::String>("_bbr");
 }
 
-void CheckpointNode::publish_checkpoint(
+void BbrNode::publish_bbr(
     std::shared_ptr<rcutils_uint8_array_t> hash,
     std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
@@ -33,7 +33,7 @@ void CheckpointNode::publish_checkpoint(
   msg.data =
       "Topic: " + message->topic_name +
       " Time: " + std::to_string(message->time_stamp);// +
-//      " Checkpoint: " + std::string(reinterpret_cast<char*>(hash->buffer));
+//      " Bbr: " + std::string(reinterpret_cast<char*>(hash->buffer));
   (void) hash;
   RCLCPP_INFO(this->get_logger(), "Publishing: '%s'", msg.data.c_str());
   publisher_->publish(msg);

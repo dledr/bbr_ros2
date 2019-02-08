@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.hpp"
+#include "rosbag2_storage_bbr_plugin/bbr/bbr_helper.hpp"
 
 //#include <iostream>
 
@@ -21,12 +21,12 @@
 namespace rosbag2_storage_plugins
 {
 
-CheckpointHelper::CheckpointHelper()
+BbrHelper::BbrHelper()
 {
   sha256engine_ = std::make_shared<SHA256Engine>();
 }
 
-std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::createNonce()
+std::shared_ptr<rcutils_uint8_array_t> BbrHelper::createNonce()
 {
   char nonce[NONCE_SIZE];
   Poco::RandomInputStream rnd;
@@ -42,7 +42,7 @@ std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::createNonce()
 }
 
 
-std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::computeGenesis(
+std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeGenesis(
     std::shared_ptr<rcutils_uint8_array_t> nonce,
     const rosbag2_storage::TopicMetadata & topic)
 {
@@ -61,7 +61,7 @@ std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::computeGenesis(
 }
 
 
-std::shared_ptr<rcutils_uint8_array_t> CheckpointHelper::computeHash(
+std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeHash(
     std::shared_ptr<rcutils_uint8_array_t> nonce,
     std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {

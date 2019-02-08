@@ -1,9 +1,9 @@
-<library path="rosbag2_storage_checkpoint_plugin">
+<library path="rosbag2_storage_bbr_plugin">
   <class
-    name="checkpoint"
-    type="rosbag2_storage_plugins::CheckpointStorage"
+    name="bbr"
+    type="rosbag2_storage_plugins::BbrStorage"
     base_class_type="rosbag2_storage::storage_interfaces::ReadWriteInterface"
   >
-    <description>Plugin to write to Checkpoint databases</description>
+    <description>Plugin to write to Bbr databases</description>
   </class>
 </library>

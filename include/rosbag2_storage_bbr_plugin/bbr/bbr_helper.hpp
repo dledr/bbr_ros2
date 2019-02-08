@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_HELPER_HPP_
-#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_HELPER_HPP_
+#ifndef ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_HELPER_HPP_
+#define ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_HELPER_HPP_
 
 #include "rosbag2_storage_default_plugins/visibility_control.hpp"
 #include "rosbag2_storage/serialized_bag_message.hpp"
@@ -40,10 +40,10 @@ class SHA256Engine
   {}
 };
 
-class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
+class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 {
  public:
-  CheckpointHelper();
+  BbrHelper();
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
 
@@ -62,4 +62,4 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC CheckpointHelper
 
 }  // namespace rosbag2_storage_plugins
 
-#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__CHECKPOINT__CHECKPOINT_HELPER_HPP_
+#endif  // ROSBAG2_STORAGE_DEFAULT_PLUGINS__BBR__BBR_HELPER_HPP_

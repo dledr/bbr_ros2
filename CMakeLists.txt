@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(rosbag2_storage_checkpoint_plugin)
+project(rosbag2_storage_bbr_plugin)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -28,9 +28,9 @@ find_package(SQLite3 REQUIRED)  # provided by sqlite3_vendor
 find_package(std_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
-  src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_helper.cpp
-  src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_node.cpp
-  src/rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_storage.cpp)
+  src/rosbag2_storage_bbr_plugin/bbr/bbr_helper.cpp
+  src/rosbag2_storage_bbr_plugin/bbr/bbr_node.cpp
+  src/rosbag2_storage_bbr_plugin/bbr/bbr_storage.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
   rosbag2_storage

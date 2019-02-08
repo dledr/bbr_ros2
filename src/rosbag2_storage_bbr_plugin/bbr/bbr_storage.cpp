@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rosbag2_storage_checkpoint_plugin/checkpoint/checkpoint_storage.hpp"
+#include "rosbag2_storage_bbr_plugin/bbr/bbr_storage.hpp"
 
 #include <sys/stat.h>
 
@@ -37,7 +37,7 @@
 namespace rosbag2_storage_plugins
 {
 
-CheckpointStorage::CheckpointStorage()
+BbrStorage::BbrStorage()
 : node_(),
   helper_(),
   database_(),
@@ -46,11 +46,11 @@ CheckpointStorage::CheckpointStorage()
   message_result_(nullptr),
   current_message_row_(nullptr, SqliteStatementWrapper::QueryResult<>::Iterator::POSITION_END)
 {
-  node_ = std::make_shared<CheckpointNode>("_rosbag2");
-  helper_ = std::make_shared<CheckpointHelper>();
+  node_ = std::make_shared<BbrNode>("_rosbag2");
+  helper_ = std::make_shared<BbrHelper>();
 }
 
-void CheckpointStorage::open(
+void BbrStorage::open(
   const std::string & uri, rosbag2_storage::storage_interfaces::IOFlag io_flag)
 {
   auto metadata = is_read_only(io_flag) ?
@@ -91,7 +91,7 @@ void CheckpointStorage::open(
   ROSBAG2_STORAGE_DEFAULT_PLUGINS_LOG_INFO_STREAM("Opened database '" << uri << "'.");
 }
 
-void CheckpointStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
+void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
   if (!write_statement_) {
     prepare_for_writing();
@@ -105,10 +105,10 @@ void CheckpointStorage::write(std::shared_ptr<const rosbag2_storage::SerializedB
   topic_entry->second.hash = helper_->computeHash(topic_entry->second.hash, message);
   write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.hash);
   write_statement_->execute_and_reset();
-  node_->publish_checkpoint(topic_entry->second.hash, message);
+  node_->publish_bbr(topic_entry->second.hash, message);
 }
 
-bool CheckpointStorage::has_next()
+bool BbrStorage::has_next()
 {
   if (!read_statement_) {
     prepare_for_reading();
@@ -117,7 +117,7 @@ bool CheckpointStorage::has_next()
   return current_message_row_ != message_result_.end();
 }
 
-std::shared_ptr<rosbag2_storage::SerializedBagMessage> CheckpointStorage::read_next()
+std::shared_ptr<rosbag2_storage::SerializedBagMessage> BbrStorage::read_next()
 {
   if (!read_statement_) {
     prepare_for_reading();
@@ -132,7 +132,7 @@ std::shared_ptr<rosbag2_storage::SerializedBagMessage> CheckpointStorage::read_n
   return bag_message;
 }
 
-std::vector<rosbag2_storage::TopicMetadata> CheckpointStorage::get_all_topics_and_types()
+std::vector<rosbag2_storage::TopicMetadata> BbrStorage::get_all_topics_and_types()
 {
   if (all_topics_and_types_.empty()) {
     fill_topics_and_types();
@@ -141,47 +141,47 @@ std::vector<rosbag2_storage::TopicMetadata> CheckpointStorage::get_all_topics_an
   return all_topics_and_types_;
 }
 
-void CheckpointStorage::initialize()
+void BbrStorage::initialize()
 {
   std::string create_table = "CREATE TABLE topics(" \
     "id INTEGER PRIMARY KEY," \
     "name TEXT NOT NULL," \
     "type TEXT NOT NULL," \
     "serialization_format TEXT NOT NULL,"
-    "checkpoint_nonce BLOB NOT NULL);";
+    "bbr_nonce BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
   create_table = "CREATE TABLE messages(" \
     "id INTEGER PRIMARY KEY," \
     "topic_id INTEGER NOT NULL," \
     "timestamp INTEGER NOT NULL, " \
     "data BLOB NOT NULL,"
-    "checkpoint_hash BLOB NOT NULL);";
+    "bbr_hash BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
 }
 
-void CheckpointStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
+void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
 {
   if (topics_.find(topic.name) == std::end(topics_)) {
     auto insert_topic =
       database_->prepare_statement(
-      "INSERT INTO topics (name, type, serialization_format, checkpoint_nonce) VALUES (?, ?, ?, ?)");
-    auto checkpoint_nonce = helper_->createNonce();
-    insert_topic->bind(topic.name, topic.type, topic.serialization_format, checkpoint_nonce);
+      "INSERT INTO topics (name, type, serialization_format, bbr_nonce) VALUES (?, ?, ?, ?)");
+    auto bbr_nonce = helper_->createNonce();
+    insert_topic->bind(topic.name, topic.type, topic.serialization_format, bbr_nonce);
     insert_topic->execute_and_reset();
-    CheckpointStorage::TopicInfo topic_info;
+    BbrStorage::TopicInfo topic_info;
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
-    topic_info.hash = checkpoint_nonce;
+    topic_info.hash = bbr_nonce;
     topics_.emplace(topic.name, topic_info);
   }
 }
 
-void CheckpointStorage::prepare_for_writing()
+void BbrStorage::prepare_for_writing()
 {
   write_statement_ = database_->prepare_statement(
-    "INSERT INTO messages (timestamp, topic_id, data, checkpoint_hash) VALUES (?, ?, ?, ?);");
+    "INSERT INTO messages (timestamp, topic_id, data, bbr_hash) VALUES (?, ?, ?, ?);");
 }
 
-void CheckpointStorage::prepare_for_reading()
+void BbrStorage::prepare_for_reading()
 {
   read_statement_ = database_->prepare_statement(
     "SELECT data, timestamp, topics.name "
@@ -192,7 +192,7 @@ void CheckpointStorage::prepare_for_reading()
   current_message_row_ = message_result_.begin();
 }
 
-void CheckpointStorage::fill_topics_and_types()
+void BbrStorage::fill_topics_and_types()
 {
   auto statement = database_->prepare_statement(
     "SELECT name, type, serialization_format FROM topics ORDER BY id;");
@@ -204,7 +204,7 @@ void CheckpointStorage::fill_topics_and_types()
   }
 }
 
-std::unique_ptr<rosbag2_storage::BagMetadata> CheckpointStorage::load_metadata(const std::string & uri)
+std::unique_ptr<rosbag2_storage::BagMetadata> BbrStorage::load_metadata(const std::string & uri)
 {
   try {
     rosbag2_storage::MetadataIo metadata_io;
@@ -215,21 +215,21 @@ std::unique_ptr<rosbag2_storage::BagMetadata> CheckpointStorage::load_metadata(c
   }
 }
 
-bool CheckpointStorage::database_exists(const std::string & uri)
+bool BbrStorage::database_exists(const std::string & uri)
 {
   std::ifstream database(uri);
   return database.good();
 }
 
-bool CheckpointStorage::is_read_only(const rosbag2_storage::storage_interfaces::IOFlag & io_flag) const
+bool BbrStorage::is_read_only(const rosbag2_storage::storage_interfaces::IOFlag & io_flag) const
 {
   return io_flag == rosbag2_storage::storage_interfaces::IOFlag::READ_ONLY;
 }
 
-rosbag2_storage::BagMetadata CheckpointStorage::get_metadata()
+rosbag2_storage::BagMetadata BbrStorage::get_metadata()
 {
   rosbag2_storage::BagMetadata metadata;
-  metadata.storage_identifier = "checkpoint";
+  metadata.storage_identifier = "bbr";
   metadata.relative_file_paths = {database_name_};
 
   metadata.message_count = 0;
@@ -274,5 +274,5 @@ rosbag2_storage::BagMetadata CheckpointStorage::get_metadata()
 }  // namespace rosbag2_storage_plugins
 
 #include "pluginlib/class_list_macros.hpp"  // NOLINT
-PLUGINLIB_EXPORT_CLASS(rosbag2_storage_plugins::CheckpointStorage,
+PLUGINLIB_EXPORT_CLASS(rosbag2_storage_plugins::BbrStorage,
   rosbag2_storage::storage_interfaces::ReadWriteInterface)

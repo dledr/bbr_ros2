@@ -23,7 +23,7 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
       ros-$ROS_DISTRO-ros2bag && \
     rosdep install -q -y \
       --from-paths \
-        src/rosbag2/rosbag2_storage_checkpoint_plugin \
+        src/rosbag2/rosbag2_storage_bbr_plugin \
       --ignore-src \
     && rm -rf /var/lib/apt/lists/*
 
@@ -36,7 +36,7 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
         colcon list \
           --names-only \
           --packages-skip \
-            rosbag2_storage_checkpoint_plugin \
+            rosbag2_storage_bbr_plugin \
         ) \
       --cmake-args \
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE
