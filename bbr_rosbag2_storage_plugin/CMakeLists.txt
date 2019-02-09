@@ -18,14 +18,14 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(bbr_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
-find_package(poco_vendor REQUIRED)
 find_package(Poco COMPONENTS Crypto)
+find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosbag2_storage REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
-find_package(sqlite3_vendor REQUIRED)
 find_package(SQLite3 REQUIRED)  # provided by sqlite3_vendor
+find_package(sqlite3_vendor REQUIRED)
 find_package(std_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
@@ -35,14 +35,15 @@ add_library(${PROJECT_NAME} SHARED
 
 ament_target_dependencies(${PROJECT_NAME}
   bbr_msgs
-  rosbag2_storage
-  rosbag2_storage_default_plugins
-  rclcpp
-  rcutils
-  SQLite3
   pluginlib
   Poco
-  std_msgs)
+  rclcpp
+  rcutils
+  rosbag2_storage
+  rosbag2_storage_default_plugins
+  SQLite3
+  std_msgs
+)
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -69,6 +70,17 @@ install(
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(bbr_msgs poco_vendor Poco rosbag2_storage rosbag2_storage_default_plugins rclcpp rcutils sqlite3_vendor SQLite3 std_msgs)
+ament_export_dependencies(
+  bbr_msgs
+  Poco
+  poco_vendor
+  rclcpp
+  rcutils
+  rosbag2_storage
+  rosbag2_storage_default_plugins
+  SQLite3
+  sqlite3_vendor
+  std_msgs
+)
 
 ament_package()
