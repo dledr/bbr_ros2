@@ -14,12 +14,10 @@ RUN apt-get update && apt-get install -q -y \
 ENV ROS_WS /opt/ros_ws
 RUN mkdir -p $ROS_WS/src
 WORKDIR $ROS_WS
-COPY ./ src/rosbag2/
+COPY ./ src/bbr_ros2/
 
 # install package dependencies
-RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
-    apt-get update && \
-    apt-get install -y \
+RUN apt-get update && apt-get install -y \
       ros-$ROS_DISTRO-ros2bag && \
     rosdep install -q -y \
       --from-paths \
