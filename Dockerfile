@@ -10,11 +10,13 @@ RUN apt-get update && apt-get install -q -y \
       wget \
     && rm -rf /var/lib/apt/lists/*
 
-# copy package repo
+# copy all package.xml
 ENV ROS_WS /opt/ros_ws
 RUN mkdir -p $ROS_WS/src
 WORKDIR $ROS_WS
-COPY ./ src/bbr_ros2/
+COPY ./bbr_msgs/package.xml src/bbr_ros2/bbr_msgs/
+COPY ./bbr_rosbag2_storage_plugin/package.xml src/bbr_ros2/bbr_rosbag2_storage_plugin/
+COPY ./bbr_sawtooth_bridge/package.xml src/bbr_ros2/bbr_sawtooth_bridge/
 
 # install package dependencies
 RUN apt-get update && apt-get install -y \
@@ -24,6 +26,9 @@ RUN apt-get update && apt-get install -y \
         src \
       --ignore-src \
     && rm -rf /var/lib/apt/lists/*
+
+# copy repo packages
+COPY ./ src/bbr_ros2/
 
 # build package source
 ARG CMAKE_BUILD_TYPE=Release
