@@ -21,8 +21,8 @@ from std_msgs.msg import String
 
 class Bridge(Node):
 
-    def __init__(self, node_name):
-        super().__init__(node_name)
+    def __init__(self, name):
+        super().__init__(name)
         self.checkpoint_subscription = self.create_subscription(
             Checkpoint,
             '_checkpoint',
@@ -34,8 +34,6 @@ class Bridge(Node):
 
     def checkpoint_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % str(msg.stamp))
-        foo = Checkpoint.stamp
-        foo
 
     def create_record_callback(self, request, response):
         response.success = True
