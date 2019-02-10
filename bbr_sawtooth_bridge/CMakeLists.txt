@@ -26,7 +26,7 @@ find_package(std_msgs REQUIRED)
 add_library(${PROJECT_NAME} SHARED
   src/bbr_sawtooth_bridge/main.cpp)
 
-add_executable(bridge
+add_executable(bridge_cpp
   src/bbr_sawtooth_bridge/main.cpp)
 
 ament_target_dependencies(${PROJECT_NAME}
@@ -52,7 +52,7 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
-install(TARGETS bridge
+install(TARGETS bridge_cpp
   DESTINATION lib/${PROJECT_NAME})
 
 ament_export_include_directories(include)
@@ -65,7 +65,7 @@ ament_export_dependencies(
   rcutils
   std_msgs)
 
-ament_target_dependencies(bridge
+ament_target_dependencies(bridge_cpp
   bbr_msgs
   Poco
   poco_vendor
