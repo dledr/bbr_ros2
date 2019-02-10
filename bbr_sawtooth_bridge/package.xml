@@ -8,11 +8,11 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <depend>bbr_msgs</depend>
+  <!-- <depend>bbr_msgs</depend>
   <depend>poco_vendor</depend>
   <depend>rclcpp</depend>
   <depend>rcutils</depend>
-  <depend>std_msgs</depend>
+  <depend>std_msgs</depend> -->
 
   <exec_depend>bbr_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>
@@ -23,6 +23,7 @@
   <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_cmake</build_type>
+    <!-- <build_type>ament_cmake</build_type> -->
+    <build_type>ament_python</build_type>
   </export>
 </package>
