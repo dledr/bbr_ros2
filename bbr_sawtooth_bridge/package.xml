@@ -2,7 +2,7 @@
 <package format="2">
   <name>bbr_sawtooth_bridge</name>
   <version>0.0.1</version>
-  <description>Brind interface between ROS2 BBR and Sawtooth</description>
+  <description>Sawtooth Bridge interface for BBR</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
   <license>Apache License 2.0</license>
 
