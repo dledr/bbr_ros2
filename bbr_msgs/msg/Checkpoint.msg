@@ -1,7 +1,8 @@
 # This represents a checkpoint of a recorded record.
 
 # Checkpoint timestamp, denoting the time of arrival for record
-builtin_interfaces/Time stamp
+#builtin_interfaces/Time stamp
+int64 stamp
 
 # Checkpoint digest, denoting the data commitment for record
 std_msgs/ByteMultiArray hash

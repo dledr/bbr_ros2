@@ -66,7 +66,8 @@ void BbrNode::publish_checkpoint(
     std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
   auto msg = bbr_msgs::msg::Checkpoint();
-  msg.stamp = rclcpp::Time(message->time_stamp);
+  // msg.stamp = rclcpp::Time(message->time_stamp);
+  msg.stamp = message->time_stamp;
   msg.hash.data = std::vector<uint8_t>(hash->buffer, hash->buffer + hash->buffer_length);
   msg.nonce.data = std::vector<uint8_t>(nonce->buffer, nonce->buffer + nonce->buffer_length);
   RCLCPP_INFO(this->get_logger(), "Publishing checkpoint: '%s'", message->topic_name.c_str());
