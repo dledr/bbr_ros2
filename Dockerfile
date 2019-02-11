@@ -51,6 +51,7 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build \
       --symlink-install \
       --cmake-args \
+        --no-warn-unused-cli \
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
         -DCMAKE_CXX_FLAGS="-Wno-unused-parameter"
 
