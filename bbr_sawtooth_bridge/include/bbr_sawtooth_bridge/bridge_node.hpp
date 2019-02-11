@@ -24,8 +24,8 @@
 // #include "rosbag2_storage/serialized_bag_message.hpp"
 // #include "rosbag2_storage/topic_metadata.hpp"
 
-using Checkpoint = bbr_msgs::msg::Checkpoint;
-using CreateRecord = bbr_msgs::srv::CreateRecord;
+using bbr_msgs::msg::Checkpoint;
+using bbr_msgs::srv::CreateRecord;
 
 namespace bbr_sawtooth_bridge
 {
