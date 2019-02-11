@@ -4,62 +4,50 @@ project(bbr_sawtooth_bridge)
 find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
-find_package(Poco COMPONENTS Crypto)
-find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rcutils REQUIRED)
-find_package(std_msgs REQUIRED)
 
 bbr_package()
 
-add_library(${PROJECT_NAME} SHARED
-  src/bbr_sawtooth_bridge/main.cpp)
-
-add_executable(bridge_cpp
-  src/bbr_sawtooth_bridge/main.cpp)
-
-ament_target_dependencies(${PROJECT_NAME}
-  bbr_msgs
-  Poco
-  rclcpp
-  rcutils
-  std_msgs)
-
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
+include_directories(
+  include
 )
 
-install(
-  DIRECTORY include/
-  DESTINATION include)
+set(dependencies
+  bbr_msgs
+  rclcpp
+)
 
-install(
-  TARGETS ${PROJECT_NAME}
+set(executable_name bbr_sawtooth_bridge)
+set(library_name ${executable_name}_core)
+
+add_library(${library_name} SHARED
+  src/bbr_sawtooth_bridge/bridge_node.cpp
+)
+ament_target_dependencies(${library_name}
+  ${dependencies}
+)
+
+add_executable(${executable_name}
+  src/bbr_sawtooth_bridge/bridge_main.cpp
+)
+ament_target_dependencies(${executable_name}
+  ${dependencies}
+)
+target_link_libraries(${executable_name}
+  ${library_name}
+)
+
+install(TARGETS ${library_name} ${executable_name}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
-
-install(TARGETS bridge_cpp
-  DESTINATION lib/${PROJECT_NAME})
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
+)
+install(DIRECTORY include/
+  DESTINATION include/
+)
 
 ament_export_include_directories(include)
-ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(
-  bbr_msgs
-  Poco
-  poco_vendor
-  rclcpp
-  rcutils
-  std_msgs)
-
-ament_target_dependencies(bridge_cpp
-  bbr_msgs
-  Poco
-  poco_vendor
-  rclcpp
-  rcutils
-  std_msgs)
+ament_export_libraries(${library_name})
+ament_export_dependencies(${dependencies})
 
 ament_package()
