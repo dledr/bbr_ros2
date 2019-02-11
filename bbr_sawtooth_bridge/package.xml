@@ -7,6 +7,7 @@
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>bbr_common</build_depend>
 
   <!-- <depend>bbr_msgs</depend>
   <depend>poco_vendor</depend>

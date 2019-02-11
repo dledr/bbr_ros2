@@ -1,21 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 project(bbr_rosbag2_storage_plugin)
 
-# Default to C99
-if(NOT CMAKE_C_STANDARD)
-  set(CMAKE_C_STANDARD 99)
-endif()
-
-# Default to C++14
-if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -Werror)
-endif()
-
 find_package(ament_cmake REQUIRED)
+find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Poco COMPONENTS Crypto)
@@ -27,6 +14,8 @@ find_package(rosbag2_storage_default_plugins REQUIRED)
 find_package(SQLite3 REQUIRED)  # provided by sqlite3_vendor
 find_package(sqlite3_vendor REQUIRED)
 find_package(std_msgs REQUIRED)
+
+bbr_package()
 
 add_library(${PROJECT_NAME} SHARED
   src/bbr_rosbag2_storage_plugin/bbr/bbr_helper.cpp
