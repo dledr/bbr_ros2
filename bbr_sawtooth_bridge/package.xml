@@ -10,6 +10,7 @@
   <build_depend>bbr_common</build_depend>
 
   <depend>bbr_msgs</depend>
+  <depend>bbr_sawtooth_protobuf</depend>
   <depend>protobuf-dev</depend>
   <depend>rclcpp</depend>
 
