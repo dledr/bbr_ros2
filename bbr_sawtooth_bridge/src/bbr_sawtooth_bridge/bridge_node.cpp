@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
+#include "bbr_sawtooth_bridge/proto/transform.pb.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -31,6 +32,8 @@ Bridge::Bridge(const std::string & node_name)
     "_checkpoint", std::bind(&Bridge::checkpoint_callback, this, _1));
   create_record_server_ = this->create_service<CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
+
+  auto foo = cartographer::transform::proto::Quaterniond();
 }
 
 void Bridge::create_record_callback(

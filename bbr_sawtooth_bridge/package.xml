@@ -9,19 +9,20 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>bbr_common</build_depend>
 
-  <!-- <depend>bbr_msgs</depend>
-  <depend>rclcpp</depend> -->
+  <depend>bbr_msgs</depend>
+  <depend>protobuf-dev</depend>
+  <depend>rclcpp</depend>
 
-  <exec_depend>bbr_msgs</exec_depend>
+  <!-- <exec_depend>bbr_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend> -->
 
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <!-- <build_type>ament_cmake</build_type> -->
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
+    <!-- <build_type>ament_python</build_type> -->
   </export>
 </package>
