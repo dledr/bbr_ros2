@@ -14,31 +14,15 @@
 
 #include <inttypes.h>
 #include <memory>
-#include "bbr_msgs/srv/create_record.hpp"
+#include "bbr_sawtooth_bridge/bridge_node.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-using CreateRecord = bbr_msgs::srv::CreateRecord;
-rclcpp::Node::SharedPtr g_node = nullptr;
+using Bridge = bbr_sawtooth_bridge::Bridge;
 
-void handle_service(
-  const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<CreateRecord::Request> request,
-  const std::shared_ptr<CreateRecord::Response> response)
-{
-  (void)request_header;
-  RCLCPP_INFO(
-    g_node->get_logger(),
-    "request: %s", request->name.c_str());
-  response->success = true;
-}
-
-int main(int argc, char ** argv)
+int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-  g_node = rclcpp::Node::make_shared("minimal_service");
-  auto server = g_node->create_service<CreateRecord>("_create_record", handle_service);
-  rclcpp::spin(g_node);
+  rclcpp::spin(std::make_shared<Bridge>("bbr_sawtooth_bridge"));
   rclcpp::shutdown();
-  g_node = nullptr;
   return 0;
 }
