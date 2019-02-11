@@ -9,18 +9,10 @@ find_package(rclcpp REQUIRED)
 
 bbr_package()
 
-
 file(GLOB_RECURSE ALL_LIBRARY_HDRS "include/*.hpp")
 file(GLOB_RECURSE ALL_LIBRARY_SRCS "src/*.cpp")
 file(GLOB_RECURSE ALL_EXECUTABLES "src/*_main.cpp")
-
-
 file(GLOB_RECURSE ALL_PROTOS "bbr_sawtooth_bridge/*.proto")
-# file(GLOB_RECURSE ALL_GRPC_SERVICES "cartographer/*_service.proto")
-# list(REMOVE_ITEM ALL_PROTOS ALL_GRPC_SERVICES)
-# if (NOT ${BUILD_GRPC})
-  # list(REMOVE_ITEM ALL_PROTOS ${ALL_GRPC_FILES})
-# endif()
 
 set(ALL_PROTO_SRCS)
 set(ALL_PROTO_HDRS)
@@ -48,12 +40,6 @@ list(APPEND ALL_LIBRARY_HDRS ${ALL_PROTO_HDRS})
 list(APPEND ALL_LIBRARY_SRCS ${ALL_PROTO_SRCS})
 set(INSTALL_GENERATED_HDRS ${ALL_PROTO_HDRS})
 
-
-include_directories(
-  # include
-  ${PROJECT_BINARY_DIR}
-)
-
 set(dependencies
   bbr_msgs
   rclcpp
@@ -63,22 +49,20 @@ set(dependencies
 set(executable_name sawtooth_bridge)
 set(library_name ${executable_name}_core)
 
+include_directories(
+  ${PROJECT_BINARY_DIR}
+)
 add_library(${library_name} STATIC
   ${ALL_LIBRARY_HDRS}
   ${ALL_LIBRARY_SRCS}
 )
-# add_library(${library_name} SHARED
-#   src/bbr_sawtooth_bridge/bridge_node.cpp
-# )
 ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
 include_directories(
   include
-  # ${PROJECT_BINARY_DIR}
 )
-
 add_executable(${executable_name}
   src/bbr_sawtooth_bridge/bridge_main.cpp
 )
