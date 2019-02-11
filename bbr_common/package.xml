@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>bbr_common</name>
+  <version>0.0.1</version>
+  <description>Common support functionality used throughout the BBR stack</description>
+  <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake_core</buildtool_depend>
+
+  <buildtool_export_depend>ament_cmake_core</buildtool_export_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
