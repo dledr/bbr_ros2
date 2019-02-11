@@ -52,7 +52,7 @@ set(library_name ${executable_name}_core)
 include_directories(
   ${PROJECT_BINARY_DIR}
 )
-add_library(${library_name} STATIC
+add_library(${library_name} SHARED
   ${ALL_LIBRARY_HDRS}
   ${ALL_LIBRARY_SRCS}
 )
