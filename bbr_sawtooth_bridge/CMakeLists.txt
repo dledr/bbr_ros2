@@ -4,29 +4,39 @@ project(bbr_sawtooth_bridge)
 find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
+find_package(bbr_sawtooth_protobuf REQUIRED)
 find_package(rclcpp REQUIRED)
 
 bbr_package()
 
-include_directories(
-  include
-)
+file(GLOB_RECURSE ALL_LIBRARY_HDRS "include/*.hpp")
+file(GLOB_RECURSE ALL_LIBRARY_SRCS "src/*.cpp")
+file(GLOB_RECURSE ALL_EXECUTABLES "src/*_main.cpp")
+list(REMOVE_ITEM ALL_LIBRARY_SRCS ${ALL_EXECUTABLES})
+
+list(APPEND ALL_LIBRARY_HDRS ${ALL_PROTO_HDRS})
+list(APPEND ALL_LIBRARY_SRCS ${ALL_PROTO_SRCS})
 
 set(dependencies
   bbr_msgs
+  bbr_sawtooth_protobuf
   rclcpp
 )
 
-set(executable_name bbr_sawtooth_bridge)
-set(library_name ${executable_name}_core)
+include_directories(
+        include
+)
 
+set(library_name ${PROJECT_NAME})
 add_library(${library_name} SHARED
-  src/bbr_sawtooth_bridge/bridge_node.cpp
+  ${ALL_LIBRARY_HDRS}
+  ${ALL_LIBRARY_SRCS}
 )
 ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
+set(executable_name bridge_cpp)
 add_executable(${executable_name}
   src/bbr_sawtooth_bridge/bridge_main.cpp
 )

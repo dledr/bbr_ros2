@@ -16,6 +16,7 @@
 #include <memory>
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
+#include "bbr_sawtooth_protobuf/proto/record.pb.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -27,16 +28,18 @@ namespace bbr_sawtooth_bridge
 Bridge::Bridge(const std::string & node_name)
 : rclcpp::Node(node_name)
 {
-  checkpoint_subscription_ = this->create_subscription<Checkpoint>(
+  checkpoint_subscription_ = this->create_subscription<bbr_msgs::msg::Checkpoint>(
     "_checkpoint", std::bind(&Bridge::checkpoint_callback, this, _1));
-  create_record_server_ = this->create_service<CreateRecord>(
+  create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
+
+  auto record = Record();
 }
 
 void Bridge::create_record_callback(
   const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<CreateRecord::Request> request,
-  const std::shared_ptr<CreateRecord::Response> response)
+  const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
+  const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response)
 {
   (void)request_header;
   RCLCPP_INFO(
@@ -46,7 +49,7 @@ void Bridge::create_record_callback(
 }
 
 void Bridge::checkpoint_callback(
-    const Checkpoint::SharedPtr msg)
+    const bbr_msgs::msg::Checkpoint::SharedPtr msg)
 {
   RCLCPP_INFO(
     this->get_logger(),

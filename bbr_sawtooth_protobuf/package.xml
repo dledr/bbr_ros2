@@ -1,22 +1,15 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>bbr_sawtooth_bridge</name>
+  <name>bbr_sawtooth_protobuf</name>
   <version>0.0.1</version>
-  <description>Sawtooth Bridge interface for BBR</description>
+  <description>Sawtooth Protobuf library for BBR</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
   <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>bbr_common</build_depend>
 
-  <depend>bbr_msgs</depend>
-  <depend>bbr_sawtooth_protobuf</depend>
   <depend>protobuf-dev</depend>
-  <depend>rclcpp</depend>
-
-  <!-- <exec_depend>bbr_msgs</exec_depend>
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>std_msgs</exec_depend> -->
 
   <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_lint_auto</test_depend>
@@ -24,6 +17,5 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <!-- <build_type>ament_python</build_type> -->
   </export>
 </package>
