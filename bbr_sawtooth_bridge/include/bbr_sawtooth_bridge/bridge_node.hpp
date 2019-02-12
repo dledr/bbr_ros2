@@ -24,9 +24,6 @@
 // #include "rosbag2_storage/serialized_bag_message.hpp"
 // #include "rosbag2_storage/topic_metadata.hpp"
 
-using bbr_msgs::msg::Checkpoint;
-using bbr_msgs::srv::CreateRecord;
-
 namespace bbr_sawtooth_bridge
 {
 
@@ -39,15 +36,15 @@ class Bridge
 
   void create_record_callback(
     const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<CreateRecord::Request> request,
-    const std::shared_ptr<CreateRecord::Response> response);
+    const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
+    const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response);
 
   void checkpoint_callback(
-      const Checkpoint::SharedPtr msg);
+      const bbr_msgs::msg::Checkpoint::SharedPtr msg);
 
  private:
-  rclcpp::Subscription<Checkpoint>::SharedPtr checkpoint_subscription_;
-  rclcpp::Service<CreateRecord>::SharedPtr create_record_server_;
+  rclcpp::Subscription<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_subscription_;
+  rclcpp::Service<bbr_msgs::srv::CreateRecord>::SharedPtr create_record_server_;
 };
 
 }  // namespace bbr_sawtooth_bridge
