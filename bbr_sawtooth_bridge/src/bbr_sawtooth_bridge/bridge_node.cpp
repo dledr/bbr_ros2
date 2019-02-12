@@ -16,7 +16,7 @@
 #include <memory>
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
-#include "bbr_sawtooth_protobuf/proto/Record.pb.h"
+#include "bbr_sawtooth_protobuf/proto/record.pb.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -33,7 +33,7 @@ Bridge::Bridge(const std::string & node_name)
   create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
 
-  auto record = Record::proto::Record();
+  auto record = Record();
 }
 
 void Bridge::create_record_callback(
