@@ -65,7 +65,7 @@ foreach(HDR ${ALL_PROTO_HDRS})
   get_filename_component(DIR ${REL_FIL} DIRECTORY)
   install(
     FILES ${HDR}
-    DESTINATION include/${DIR}
+    DESTINATION include/${PROJECT_NAME}/${DIR}
   )
 endforeach()
 
