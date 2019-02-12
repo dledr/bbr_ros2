@@ -27,9 +27,7 @@ include_directories(
         include
 )
 
-set(executable_name sawtooth_bridge)
-set(library_name ${executable_name}_core)
-
+set(library_name ${PROJECT_NAME})
 add_library(${library_name} SHARED
   ${ALL_LIBRARY_HDRS}
   ${ALL_LIBRARY_SRCS}
@@ -38,6 +36,7 @@ ament_target_dependencies(${library_name}
   ${dependencies}
 )
 
+set(executable_name bridge_cpp)
 add_executable(${executable_name}
   src/bbr_sawtooth_bridge/bridge_main.cpp
 )
