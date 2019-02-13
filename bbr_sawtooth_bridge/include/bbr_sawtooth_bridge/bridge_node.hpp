@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef BBR_SAWTOOTH_BRIDGE__BBR__BRIDGE_HPP_
-#define BBR_SAWTOOTH_BRIDGE__BBR__BRIDGE_HPP_
+#ifndef BBR_SAWTOOTH_BRIDGE__BBR__NODE_HPP_
+#define BBR_SAWTOOTH_BRIDGE__BBR__NODE_HPP_
 
 #include "bbr_msgs/msg/checkpoint.hpp"
 #include "bbr_msgs/srv/create_record.hpp"
@@ -49,4 +49,4 @@ class Bridge
 
 }  // namespace bbr_sawtooth_bridge
 
-#endif  // BBR_SAWTOOTH_BRIDGE__BBR__BRIDGE_HPP_
+#endif  // BBR_SAWTOOTH_BRIDGE__BBR__NODE_HPP_
