@@ -51,7 +51,17 @@ target_link_libraries(${executable_name}
   ${library_name}
 )
 
-install(TARGETS ${library_name} ${executable_name}
+add_executable(demo_cpp
+  src/bbr_sawtooth_bridge/demo_main.cpp
+)
+ament_target_dependencies(demo_cpp
+  ${dependencies}
+)
+target_link_libraries(demo_cpp
+  ${library_name}
+)
+
+install(TARGETS ${library_name} ${executable_name} demo_cpp
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
