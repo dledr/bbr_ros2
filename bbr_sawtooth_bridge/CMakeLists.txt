@@ -8,6 +8,8 @@ find_package(bbr_sawtooth_protobuf REQUIRED)
 find_package(Poco COMPONENTS Crypto)
 find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
+find_library(SECP256k1_LIBRARY libsecp256k1.so)
+
 
 bbr_package()
 
@@ -38,6 +40,7 @@ add_library(${library_name} SHARED
 )
 ament_target_dependencies(${library_name}
   ${dependencies}
+  ${SECP256k1_LIBRARY}
 )
 
 set(executable_name bridge_cpp)
@@ -49,6 +52,7 @@ ament_target_dependencies(${executable_name}
 )
 target_link_libraries(${executable_name}
   ${library_name}
+  ${SECP256k1_LIBRARY}
 )
 
 add_executable(demo_cpp
@@ -59,6 +63,7 @@ ament_target_dependencies(demo_cpp
 )
 target_link_libraries(demo_cpp
   ${library_name}
+  ${SECP256k1_LIBRARY}
 )
 
 install(TARGETS ${library_name} ${executable_name} demo_cpp
