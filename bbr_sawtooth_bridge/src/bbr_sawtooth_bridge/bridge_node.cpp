@@ -16,7 +16,6 @@
 #include <memory>
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
-#include "bbr_sawtooth_protobuf/proto/record.pb.h"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -26,14 +25,14 @@ namespace bbr_sawtooth_bridge
 {
 
 Bridge::Bridge(const std::string & node_name)
-: rclcpp::Node(node_name)
+: rclcpp::Node(node_name),
+  signer_()
 {
   checkpoint_subscription_ = this->create_subscription<bbr_msgs::msg::Checkpoint>(
     "_checkpoint", std::bind(&Bridge::checkpoint_callback, this, _1));
   create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
-
-  auto record = Record();
+  signer_ = std::make_shared<Signer>();
 }
 
 void Bridge::create_record_callback(

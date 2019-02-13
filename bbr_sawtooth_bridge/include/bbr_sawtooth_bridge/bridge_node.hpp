@@ -17,6 +17,7 @@
 
 #include "bbr_msgs/msg/checkpoint.hpp"
 #include "bbr_msgs/srv/create_record.hpp"
+#include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 
@@ -45,6 +46,7 @@ class Bridge
  private:
   rclcpp::Subscription<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_subscription_;
   rclcpp::Service<bbr_msgs::srv::CreateRecord>::SharedPtr create_record_server_;
+  std::shared_ptr<Signer> signer_;
 };
 
 }  // namespace bbr_sawtooth_bridge
