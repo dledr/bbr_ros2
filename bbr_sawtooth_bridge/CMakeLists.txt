@@ -5,6 +5,8 @@ find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
 find_package(bbr_sawtooth_protobuf REQUIRED)
+find_package(Poco COMPONENTS Crypto)
+find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 
 bbr_package()
@@ -20,6 +22,8 @@ list(APPEND ALL_LIBRARY_SRCS ${ALL_PROTO_SRCS})
 set(dependencies
   bbr_msgs
   bbr_sawtooth_protobuf
+  Poco
+  poco_vendor
   rclcpp
 )
 

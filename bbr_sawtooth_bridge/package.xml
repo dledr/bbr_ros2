@@ -11,6 +11,7 @@
 
   <depend>bbr_msgs</depend>
   <depend>bbr_sawtooth_protobuf</depend>
+  <depend>poco_vendor</depend>
   <depend>protobuf-dev</depend>
   <depend>rclcpp</depend>
   <!--<depend>libsecp256k1-dev</depend>-->
