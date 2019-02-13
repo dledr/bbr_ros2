@@ -36,7 +36,8 @@ COPY ./bbr_sawtooth_protobuf/package.xml bbr_sawtooth_protobuf/
 WORKDIR $ROS_WS
 # install package dependencies
 RUN apt-get update && apt-get install -y \
-      ros-$ROS_DISTRO-ros2bag && \
+      ros-$ROS_DISTRO-ros2bag \
+      libsecp256k1-dev && \
     rosdep install -q -y \
       --from-paths \
         src \

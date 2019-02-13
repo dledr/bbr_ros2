@@ -13,6 +13,7 @@
   <depend>bbr_sawtooth_protobuf</depend>
   <depend>protobuf-dev</depend>
   <depend>rclcpp</depend>
+  <!--<depend>libsecp256k1-dev</depend>-->
 
   <!-- <exec_depend>bbr_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>
