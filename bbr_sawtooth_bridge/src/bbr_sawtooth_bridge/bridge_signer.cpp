@@ -25,11 +25,11 @@ namespace bbr_sawtooth_bridge
 Signer::Signer()
 {
 
-  char beef[] = "foo";
-  std::string payload_bytes(beef);
-  Poco::Crypto::DigestEngine sha512("SHA512");
-  sha512.reset();
-  sha512.update(payload_bytes);
+//  char beef[] = "foo";
+//  std::string payload_bytes(beef);
+//  Poco::Crypto::DigestEngine sha512("SHA512");
+//  sha512.reset();
+//  sha512.update(payload_bytes);
 //  auto digest = sha512.digest();
 
 //  auto transaction_header = TransactionHeader();
@@ -46,8 +46,13 @@ Signer::Signer()
 //  transaction_header.SerializeToString(&txn_header_bytes);
 
 
-  std::string private_pem = "-----BEGIN EC PRIVATE KEY-----\n"
-                            "MC4CAQEEIKFAvVB6VzYOL6UDKYwDWFTw3LJIvtq756FNs5IKqs9XoAcGBSuBBAAK\n"
+  std::string private_pem = "-----BEGIN EC PARAMETERS-----\n"
+                            "BgUrgQQACg==\n"
+                            "-----END EC PARAMETERS-----\n"
+                            "-----BEGIN EC PRIVATE KEY-----\n"
+                            "MHQCAQEEIHSL071lsUCnE7G1kmHE0tmMgtuFKSwnyFaU4hYO38EjoAcGBSuBBAAK\n"
+                            "oUQDQgAES/58IaP2xljOS0XreQVUbj03VFSG5qOHvjxn6GRsCepu4WiXHa0lRjRH\n"
+                            "xqhVFvuA0/6PqJph5QFy55TP/vlp3Q==\n"
                             "-----END EC PRIVATE KEY-----" ;
 
   std::istringstream iPriv(private_pem);
@@ -55,12 +60,10 @@ Signer::Signer()
   Poco::Crypto::ECDSADigestEngine ecdsa_digest_engine(ec_key, "SHA256");
 
   ecdsa_digest_engine.reset();
-  ecdsa_digest_engine.update(payload_bytes);
+  ecdsa_digest_engine.update("foo");
   auto spam = ecdsa_digest_engine.digest();
   auto digest = ecdsa_digest_engine.signature();
   assert(ecdsa_digest_engine.verify(digest) == true);
-//  char* hash = reinterpret_cast<char*>(digest.data());
-//
 
 
 //  std::ostringstream strPubE;
