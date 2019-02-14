@@ -23,7 +23,7 @@ namespace rosbag2_storage_plugins
 
 BbrHelper::BbrHelper()
 {
-  sha256engine_ = std::make_shared<SHA256Engine>();
+  deigest_engine_ = std::make_shared<Poco::Crypto::DigestEngine>(DIGEST_ENGINE_NAME);
 }
 
 std::shared_ptr<rcutils_uint8_array_t> BbrHelper::createNonce()
@@ -49,12 +49,12 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeGenesis(
 //  TODO: Properly hash a list of multiple items, e.g via a hash list
 //  https://en.wikipedia.org/wiki/Hash_list
 //  https://crypto.stackexchange.com/questions/10058/how-to-hash-a-list-of-multiple-items
-  sha256engine_->reset();
-  sha256engine_->update(nonce->buffer, nonce->buffer_length);
-  sha256engine_->update(topic.name);
-  sha256engine_->update(topic.type);
-  sha256engine_->update(topic.serialization_format);
-  Poco::DigestEngine::Digest digest = sha256engine_->digest();
+  deigest_engine_->reset();
+  deigest_engine_->update(nonce->buffer, nonce->buffer_length);
+  deigest_engine_->update(topic.name);
+  deigest_engine_->update(topic.type);
+  deigest_engine_->update(topic.serialization_format);
+  Poco::DigestEngine::Digest digest = deigest_engine_->digest();
   char* hash = reinterpret_cast<char*>(digest.data());
 
   return rosbag2_storage::make_serialized_message(hash, NONCE_SIZE);;
@@ -66,11 +66,11 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeHash(
     std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
 //  TODO: Properly hash a list of multiple items, e.g via a hash list
-  sha256engine_->reset();
-  sha256engine_->update(nonce->buffer, nonce->buffer_length);
-  sha256engine_->update(message->time_stamp);
-  sha256engine_->update(message->serialized_data->buffer, message->serialized_data->buffer_length);
-  Poco::DigestEngine::Digest digest = sha256engine_->digest();
+  deigest_engine_->reset();
+  deigest_engine_->update(nonce->buffer, nonce->buffer_length);
+  deigest_engine_->update(message->time_stamp);
+  deigest_engine_->update(message->serialized_data->buffer, message->serialized_data->buffer_length);
+  Poco::DigestEngine::Digest digest = deigest_engine_->digest();
   char* hash = reinterpret_cast<char*>(digest.data());
 
   return rosbag2_storage::make_serialized_message(hash, NONCE_SIZE);;

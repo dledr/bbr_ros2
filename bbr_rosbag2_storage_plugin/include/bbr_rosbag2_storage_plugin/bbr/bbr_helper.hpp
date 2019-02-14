@@ -26,19 +26,7 @@ namespace rosbag2_storage_plugins
 {
 
 const size_t NONCE_SIZE = 32;
-
-class SHA256Engine
-    : public Poco::Crypto::DigestEngine {
- public:
-  enum {
-    BLOCK_SIZE = 64,
-    DIGEST_SIZE = NONCE_SIZE
-  };
-
-  SHA256Engine()
-      : DigestEngine("SHA256")
-  {}
-};
+const std::string DIGEST_ENGINE_NAME = "SHA256";
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 {
@@ -56,7 +44,7 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
-  std::shared_ptr<SHA256Engine> sha256engine_;
+  std::shared_ptr<Poco::Crypto::DigestEngine> deigest_engine_;
 
 };
 
