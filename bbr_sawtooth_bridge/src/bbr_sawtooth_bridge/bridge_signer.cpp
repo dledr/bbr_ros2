@@ -17,16 +17,31 @@
 #include <inttypes.h>
 #include <memory>
 
-#include <secp256k1.h>
-
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
+#include "Poco/StreamCopier.h"
+
+
+secp256k1_context const* getCtx()
+{
+  static std::unique_ptr<secp256k1_context, decltype(&secp256k1_context_destroy)> s_ctx{
+      secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY),
+      &secp256k1_context_destroy
+  };
+  return s_ctx.get();
+}
 
 namespace bbr_sawtooth_bridge
 {
 
-Signer::Signer()
-{
+
+Signer::Signer() {
+  context = getCtx();
+  demo();
+}
+
+void Signer::demo(){
+
 
 //  char beef[] = "foo";
 //  std::string payload_bytes(beef);
@@ -48,8 +63,6 @@ Signer::Signer()
 //  std::string txn_header_bytes;
 //  transaction_header.SerializeToString(&txn_header_bytes);
 
-  unsigned int ALL_FLAGS = SECP256K1_FLAGS_BIT_CONTEXT_SIGN|SECP256K1_CONTEXT_VERIFY;
-  secp256k1_context* context = secp256k1_context_create(ALL_FLAGS);
 
   std::string KEY1_PRIV_HEX = "2f1e7b7a130d7ba9da0068b3bb0ba1d79e7e77110302c9f746c3c2a63fe40088";
   std::string MSG1 = "test";
@@ -57,24 +70,17 @@ Signer::Signer()
                    "702b4aa83be72ab7e3cb20f17c657011b49f4c8632be2745ba4de79e6aa0"
                    "5da57b35";
 
+  std::string priv_key_str;
+  priv_key_str = decodeFromHex(KEY1_PRIV_HEX);
+  std::cout << "\nKEY1_PRIV_HEX" << "\n";
+  std::cout << encodeToHex(priv_key_str) << "\n";
+
+  
+
   Poco::Crypto::DigestEngine sha256("SHA256");
   sha256.reset();
   sha256.update(MSG1);
   auto digest = sha256.digest();
-
-  std::istringstream keyStream(KEY1_PRIV_HEX.c_str());
-  Poco::HexBinaryDecoder hexDnc(keyStream);
-  std::string priv_key_str;
-//  hexDnc >> priv_key_str;
-  int c = hexDnc.get();
-  while (c != -1) { priv_key_str += char(c); c = hexDnc.get(); }
-
-  std::ostringstream str;
-  Poco::HexBinaryEncoder encoder(str);
-  encoder << priv_key_str;
-  encoder.close();
-  std::cout << "\nKEY1_PRIV_HEX" << "\n";
-  std::cout << str.str() << "\n";
 
   secp256k1_ecdsa_signature *raw_sig = new secp256k1_ecdsa_signature;
   const unsigned char *msg32 = digest.data();
@@ -82,22 +88,39 @@ Signer::Signer()
   secp256k1_nonce_function nonce_fn = NULL;
   const void *nonce_data = NULL;
 
-  secp256k1_ecdsa_sign(context, raw_sig, msg32, private_key, nonce_fn, nonce_data);
-
   unsigned char output64[64];
+  secp256k1_ecdsa_sign(context, raw_sig, msg32, private_key, nonce_fn, nonce_data);
   secp256k1_ecdsa_signature_serialize_compact(context, output64, raw_sig);
-//  assert(signed == 1);
   std::string signature((char *)output64, 64);
-//  std::string signature((char *)private_key, 64);
 
-  std::ostringstream ostr;
-  Poco::HexBinaryEncoder sig_encoder(ostr);
-  sig_encoder << signature;
-  sig_encoder.close();
+  std::string signature_hex;
+  signature_hex = encodeToHex(signature);
   std::cout << "\nMSG1_KEY1_SIG" << "\n";
-  std::cout << ostr.str() << "\n";
+  std::cout << signature_hex << "\n";
   
 }
 
+std::string Signer::encodeToHex(const std::string& str)
+{
+  std::istringstream source(str);
+  std::ostringstream sink;
+
+  Poco::HexBinaryEncoder encoder(sink);
+  Poco::StreamCopier::copyStream(source, encoder);
+  encoder.close();
+
+  return sink.str();
+}
+
+std::string Signer::decodeFromHex(const std::string& str)
+{
+  std::istringstream source(str);
+  std::ostringstream sink;
+
+  Poco::HexBinaryDecoder decoder(source);
+  Poco::StreamCopier::copyStream(decoder, sink);
+
+  return sink.str();
+}
 
 }  // namespace bbr_sawtooth_bridge

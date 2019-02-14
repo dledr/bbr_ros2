@@ -15,7 +15,7 @@
 #ifndef BBR_SAWTOOTH_BRIDGE__BBR__SIGNER_HPP_
 #define BBR_SAWTOOTH_BRIDGE__BBR__SIGNER_HPP_
 
-//#include <secp256k1.h>
+#include <secp256k1.h>
 
 #include "bbr_sawtooth_protobuf/proto/transaction.pb.h"
 
@@ -35,6 +35,13 @@ class Signer
 {
  public:
   Signer();
+
+  std::string encodeToHex(const std::string& str);
+  std::string decodeFromHex(const std::string& str);
+
+  void demo();
+
+  secp256k1_context const* context;
 };
 
 }  // namespace bbr_sawtooth_bridge
