@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <assert.h>
 #include <iostream>
 #include <inttypes.h>
 #include <memory>
+
+#include <secp256k1.h>
 
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
@@ -45,43 +48,55 @@ Signer::Signer()
 //  std::string txn_header_bytes;
 //  transaction_header.SerializeToString(&txn_header_bytes);
 
+  unsigned int ALL_FLAGS = SECP256K1_FLAGS_BIT_CONTEXT_SIGN|SECP256K1_CONTEXT_VERIFY;
+  secp256k1_context* context = secp256k1_context_create(ALL_FLAGS);
 
-  std::string private_pem = "-----BEGIN EC PARAMETERS-----\n"
-                            "BgUrgQQACg==\n"
-                            "-----END EC PARAMETERS-----\n"
-                            "-----BEGIN EC PRIVATE KEY-----\n"
-                            "MHQCAQEEIHSL071lsUCnE7G1kmHE0tmMgtuFKSwnyFaU4hYO38EjoAcGBSuBBAAK\n"
-                            "oUQDQgAES/58IaP2xljOS0XreQVUbj03VFSG5qOHvjxn6GRsCepu4WiXHa0lRjRH\n"
-                            "xqhVFvuA0/6PqJph5QFy55TP/vlp3Q==\n"
-                            "-----END EC PRIVATE KEY-----" ;
+  std::string KEY1_PRIV_HEX = "2f1e7b7a130d7ba9da0068b3bb0ba1d79e7e77110302c9f746c3c2a63fe40088";
+  std::string MSG1 = "test";
+  std::string MSG1_KEY1_SIG = "5195115d9be2547b720ee74c23dd841842875db6eae1f5da8605b050a49e"
+                   "702b4aa83be72ab7e3cb20f17c657011b49f4c8632be2745ba4de79e6aa0"
+                   "5da57b35";
 
-  std::istringstream iPriv(private_pem);
-  Poco::Crypto::ECKey ec_key(NULL, &iPriv, "");
-  Poco::Crypto::ECDSADigestEngine ecdsa_digest_engine(ec_key, "SHA256");
+  Poco::Crypto::DigestEngine sha256("SHA256");
+  sha256.reset();
+  sha256.update(MSG1);
+  auto digest = sha256.digest();
 
-  ecdsa_digest_engine.reset();
-  ecdsa_digest_engine.update("foo");
-  auto spam = ecdsa_digest_engine.digest();
-  auto digest = ecdsa_digest_engine.signature();
-  assert(ecdsa_digest_engine.verify(digest) == true);
+  std::istringstream keyStream(KEY1_PRIV_HEX.c_str());
+  Poco::HexBinaryDecoder hexDnc(keyStream);
+  std::string priv_key_str;
+//  hexDnc >> priv_key_str;
+  int c = hexDnc.get();
+  while (c != -1) { priv_key_str += char(c); c = hexDnc.get(); }
 
+  std::ostringstream str;
+  Poco::HexBinaryEncoder encoder(str);
+  encoder << priv_key_str;
+  encoder.close();
+  std::cout << "\nKEY1_PRIV_HEX" << "\n";
+  std::cout << str.str() << "\n";
 
-//  std::ostringstream strPubE;
-//  std::ostringstream strPrivE;
-//  ec_key.save(&strPubE, &strPrivE, "");
-//  std::string pubKeyE = strPubE.str();
-//  std::string privKeyE = strPrivE.str();
-//  std::cout << privKeyE << "\n";
+  secp256k1_ecdsa_signature *raw_sig = new secp256k1_ecdsa_signature;
+  const unsigned char *msg32 = digest.data();
+  const unsigned char *private_key = (unsigned char*) priv_key_str.c_str();
+  secp256k1_nonce_function nonce_fn = NULL;
+  const void *nonce_data = NULL;
 
+  secp256k1_ecdsa_sign(context, raw_sig, msg32, private_key, nonce_fn, nonce_data);
 
-  std::ostringstream hashStream;
-  Poco::HexBinaryEncoder hexEnc(hashStream);
-  hexEnc.write(reinterpret_cast<char*>(digest.data()), digest.size());
-  hexEnc.close();
-  std::string hashHex = hashStream.str();
-  std::cout << hashHex << "\n";
+  unsigned char output64[64];
+  secp256k1_ecdsa_signature_serialize_compact(context, output64, raw_sig);
+//  assert(signed == 1);
+  std::string signature((char *)output64, 64);
+//  std::string signature((char *)private_key, 64);
 
-
+  std::ostringstream ostr;
+  Poco::HexBinaryEncoder sig_encoder(ostr);
+  sig_encoder << signature;
+  sig_encoder.close();
+  std::cout << "\nMSG1_KEY1_SIG" << "\n";
+  std::cout << ostr.str() << "\n";
+  
 }
 
 
