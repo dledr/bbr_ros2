@@ -20,6 +20,7 @@
 
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
+#include "Poco/DigestStream.h"
 #include "Poco/HexBinaryDecoder.h"
 #include "Poco/HexBinaryEncoder.h"
 #include "Poco/StreamCopier.h"
@@ -60,10 +61,24 @@ Signer::Signer(const std::string & privkey_str) {
 
 std::string Signer::sign(const std::string& message){
 
+  std::istringstream source(message);
   Poco::Crypto::DigestEngine sha256("SHA256");
   sha256.reset();
-  sha256.update(message);
+  Poco::DigestOutputStream digest_output_stream(sha256);
+  Poco::StreamCopier::copyStream(source, digest_output_stream);
+  digest_output_stream.close();
   auto digest = sha256.digest();
+
+//  Poco::Crypto::DigestEngine sha256("SHA256");
+//  sha256.reset();
+//  sha256.update(message);
+//  auto digest = sha256.digest();
+
+  return this->_sign(digest);
+
+}
+
+std::string Signer::_sign(const std::vector<unsigned char>& digest){
 
   secp256k1_ecdsa_signature *raw_sig = new secp256k1_ecdsa_signature;
   const unsigned char *msg32 = digest.data();

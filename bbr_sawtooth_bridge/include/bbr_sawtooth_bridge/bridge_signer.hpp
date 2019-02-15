@@ -34,6 +34,7 @@ class Signer
   Signer(const std::string & privkey_str);
 
   std::string sign(const std::string& message);
+  std::string _sign(const std::vector<unsigned char>& digest);
 
   std::string privkey;
   std::string pubkey;
