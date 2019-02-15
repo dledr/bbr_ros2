@@ -32,7 +32,8 @@ Bridge::Bridge(const std::string & node_name)
     "_checkpoint", std::bind(&Bridge::checkpoint_callback, this, _1));
   create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
-  signer_ = std::make_shared<Signer>();
+//  FIXME: Signer needs private key bytes
+  signer_ = std::make_shared<Signer>("");
 }
 
 void Bridge::create_record_callback(
