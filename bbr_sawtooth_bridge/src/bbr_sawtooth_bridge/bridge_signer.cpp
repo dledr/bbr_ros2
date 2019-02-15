@@ -38,7 +38,7 @@ namespace bbr_sawtooth_bridge
 {
 
 
-Signer::Signer(std::string privkey_str) {
+Signer::Signer(const std::string & privkey_str) {
   context_ = getCtx();
   privkey = privkey_str;
 

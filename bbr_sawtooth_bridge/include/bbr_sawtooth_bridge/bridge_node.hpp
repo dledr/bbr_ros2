@@ -32,7 +32,7 @@ class Bridge
     : public rclcpp::Node
 {
  public:
-  explicit Bridge(const std::string & node_name);
+  explicit Bridge(const std::string & node_name, const std::string & privkey);
   ~Bridge() override = default;
 
   void create_record_callback(

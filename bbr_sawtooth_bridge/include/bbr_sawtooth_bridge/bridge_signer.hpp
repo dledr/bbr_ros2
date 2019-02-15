@@ -31,7 +31,7 @@ std::string decodeFromHex(const std::string& str);
 class Signer
 {
  public:
-  Signer(std::string privkey_str);
+  Signer(const std::string & privkey_str);
 
   std::string sign(const std::string& message);
 
