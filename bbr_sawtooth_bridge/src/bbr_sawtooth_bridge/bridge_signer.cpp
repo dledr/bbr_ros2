@@ -36,7 +36,7 @@ namespace bbr_sawtooth_bridge
 
 
 Signer::Signer() {
-  context = getCtx();
+  context_ = getCtx();
   demo();
 }
 
@@ -65,17 +65,32 @@ void Signer::demo(){
 
 
   std::string KEY1_PRIV_HEX = "2f1e7b7a130d7ba9da0068b3bb0ba1d79e7e77110302c9f746c3c2a63fe40088";
+  std::string KEY1_PUB_HEX = "026a2c795a9776f75464aa3bda3534c3154a6e91b357b1181d3f515110f84b67c5";
   std::string MSG1 = "test";
   std::string MSG1_KEY1_SIG = "5195115d9be2547b720ee74c23dd841842875db6eae1f5da8605b050a49e"
                    "702b4aa83be72ab7e3cb20f17c657011b49f4c8632be2745ba4de79e6aa0"
                    "5da57b35";
 
-  std::string priv_key_str;
-  priv_key_str = decodeFromHex(KEY1_PRIV_HEX);
+  std::string privkey_str;
+  privkey_str = decodeFromHex(KEY1_PRIV_HEX);
   std::cout << "\nKEY1_PRIV_HEX" << "\n";
-  std::cout << encodeToHex(priv_key_str) << "\n";
+  std::cout << encodeToHex(privkey_str) << "\n";
 
-  
+  const unsigned char *privkey_ptr = (unsigned char*) privkey_str.c_str();
+  secp256k1_pubkey *pubkey_ptr = new secp256k1_pubkey;
+  int created = secp256k1_ec_pubkey_create(
+      context_, pubkey_ptr, privkey_ptr);
+  assert(created == 1);
+
+  std::array<uint8_t, 33> pubkey_bytes;
+  size_t serializedPubkeySize = pubkey_bytes.size();
+  secp256k1_ec_pubkey_serialize(
+      context_, pubkey_bytes.data(), &serializedPubkeySize, pubkey_ptr, SECP256K1_EC_COMPRESSED);
+  std::string pubkey_str((char*) pubkey_bytes.data());
+
+  std::cout << "\nKEY1_PUB_HEX" << "\n";
+  std::cout << encodeToHex(pubkey_str) << "\n";
+
 
   Poco::Crypto::DigestEngine sha256("SHA256");
   sha256.reset();
@@ -84,13 +99,14 @@ void Signer::demo(){
 
   secp256k1_ecdsa_signature *raw_sig = new secp256k1_ecdsa_signature;
   const unsigned char *msg32 = digest.data();
-  const unsigned char *private_key = (unsigned char*) priv_key_str.c_str();
   secp256k1_nonce_function nonce_fn = NULL;
   const void *nonce_data = NULL;
 
   unsigned char output64[64];
-  secp256k1_ecdsa_sign(context, raw_sig, msg32, private_key, nonce_fn, nonce_data);
-  secp256k1_ecdsa_signature_serialize_compact(context, output64, raw_sig);
+  secp256k1_ecdsa_sign(
+      context_, raw_sig, msg32, privkey_ptr, nonce_fn, nonce_data);
+  secp256k1_ecdsa_signature_serialize_compact(
+      context_, output64, raw_sig);
   std::string signature((char *)output64, 64);
 
   std::string signature_hex;

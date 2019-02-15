@@ -41,7 +41,7 @@ class Signer
 
   void demo();
 
-  secp256k1_context const* context;
+  secp256k1_context const* context_;
 };
 
 }  // namespace bbr_sawtooth_bridge
