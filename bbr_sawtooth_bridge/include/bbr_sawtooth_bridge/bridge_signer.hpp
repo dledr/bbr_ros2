@@ -38,6 +38,7 @@ class Signer
 
   std::string privkey;
   std::string pubkey;
+  std::string pubkey_str;
 
   secp256k1_context const* context_;
 };

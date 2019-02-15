@@ -56,6 +56,7 @@ Signer::Signer(const std::string & privkey_str) {
       context_, pubkey_bytes.data(), &serializedPubkeySize, pubkey_ptr.get(), SECP256K1_EC_COMPRESSED);
   assert(pubkey_serialize == 1);
   pubkey = std::string((char*) pubkey_bytes.data());
+  pubkey_str = encodeToHex(pubkey);
 }
 
 
