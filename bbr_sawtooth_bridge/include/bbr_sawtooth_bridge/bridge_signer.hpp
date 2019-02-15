@@ -20,12 +20,7 @@
 #include "bbr_sawtooth_protobuf/proto/transaction.pb.h"
 
 #include "Poco/Crypto/DigestEngine.h"
-#include "Poco/Crypto/ECDSADigestEngine.h"
-#include "Poco/Crypto/ECKey.h"
-#include "Poco/Crypto/EVPPKey.h"
 
-#include "Poco/HexBinaryDecoder.h"
-#include "Poco/HexBinaryEncoder.h"
 
 namespace bbr_sawtooth_bridge
 {

@@ -16,9 +16,12 @@
 #include <iostream>
 #include <inttypes.h>
 #include <memory>
+#include <sstream>
 
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
+#include "Poco/HexBinaryDecoder.h"
+#include "Poco/HexBinaryEncoder.h"
 #include "Poco/StreamCopier.h"
 
 
