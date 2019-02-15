@@ -17,8 +17,6 @@
 
 #include <secp256k1.h>
 
-#include "bbr_sawtooth_protobuf/proto/transaction.pb.h"
-
 #include "Poco/Crypto/DigestEngine.h"
 
 

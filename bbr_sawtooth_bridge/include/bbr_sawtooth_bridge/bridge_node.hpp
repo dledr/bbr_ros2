@@ -32,7 +32,10 @@ class Bridge
     : public rclcpp::Node
 {
  public:
-  explicit Bridge(const std::string & node_name, const std::string & privkey);
+  explicit Bridge(
+      const std::string & node_name,
+      const std::string & signer_privkey,
+      const std::string & batcher_privkey);
   ~Bridge() override = default;
 
   void create_record_callback(
@@ -46,7 +49,11 @@ class Bridge
  private:
   rclcpp::Subscription<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_subscription_;
   rclcpp::Service<bbr_msgs::srv::CreateRecord>::SharedPtr create_record_server_;
+
+  std::shared_ptr<Signer> batcher_;
   std::shared_ptr<Signer> signer_;
+
+  std::shared_ptr<Poco::Crypto::DigestEngine> deigest_engine_;
 };
 
 }  // namespace bbr_sawtooth_bridge

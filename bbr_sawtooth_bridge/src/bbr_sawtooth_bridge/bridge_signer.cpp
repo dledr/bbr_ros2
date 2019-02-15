@@ -99,29 +99,6 @@ std::string Signer::_sign(const std::vector<unsigned char>& digest){
 
 }
 
-
-//  char beef[] = "foo";
-//  std::string payload_bytes(beef);
-//  Poco::Crypto::DigestEngine sha512("SHA512");
-//  sha512.reset();
-//  sha512.update(payload_bytes);
-//  auto digest = sha512.digest();
-
-//  auto transaction_header = TransactionHeader();
-//  transaction_header.set_family_name("intkey");
-//  transaction_header.set_family_version("1.0");
-//  transaction_header.set_inputs(0, "1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
-//  transaction_header.set_outputs(0, "1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
-//  transaction_header.set_signer_public_key("034a2176fedd3945d922a26a83495e5ff9328d55d8c8f0fa432f9f4ff267aebf4a");
-//  transaction_header.set_batcher_public_key("034a2176fedd3945d922a26a83495e5ff9328d55d8c8f0fa432f9f4ff267aebf4a");
-////  transaction.set_dependencies();
-//  transaction_header.set_payload_sha512("sha512(payload_bytes).hexdigest()");
-//
-//  std::string txn_header_bytes;
-//  transaction_header.SerializeToString(&txn_header_bytes);
-
-
-
 std::string encodeToHex(const std::string& str)
 {
   std::istringstream source(str);
