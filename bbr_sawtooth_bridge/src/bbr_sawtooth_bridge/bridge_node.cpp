@@ -79,8 +79,12 @@ void Bridge::checkpoint_callback(
 //  TODO: Update family_name to "bbr"
   txn_header.set_family_name("intkey");
   txn_header.set_family_version("1.0");
-  txn_header.set_inputs(0, "1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
-  txn_header.set_outputs(0, "1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
+  auto input = txn_header.add_inputs();
+  input->assign("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
+
+  auto output = txn_header.add_outputs();
+  output->assign("1cf1266e282c41be5e4254d8820772c5518a2c5a8c0c7f7eda19594a7eb539453e1ed7");
+
   txn_header.set_signer_public_key(signer_->pubkey_str);
   txn_header.set_batcher_public_key(batcher_->pubkey_str);
 //  transaction.set_dependencies();
@@ -98,7 +102,7 @@ void Bridge::checkpoint_callback(
 
   std::string txn_header_bytes;
   txn_header.SerializeToString(&txn_header_bytes);
-  auto txn_header_signature = signer_->sign(txn_header_bytes);
+  auto txn_header_signature = encodeToHex(signer_->sign(txn_header_bytes));
 
   transaction->set_header(txn_header_bytes);
   transaction->set_header_signature(txn_header_signature);
@@ -106,11 +110,12 @@ void Bridge::checkpoint_callback(
 
   BatchHeader batch_header;
   batch_header.set_signer_public_key(batcher_->pubkey_str);
-  batch_header.set_transaction_ids(0, transaction->header_signature());
+  auto transaction_id = batch_header.add_transaction_ids();
+  transaction_id->assign(transaction->header_signature());
 
   std::string batch_header_bytes;
   batch_header.SerializeToString(&batch_header_bytes);
-  auto batch_header_signature = batcher_->sign(batch_header_bytes);
+  auto batch_header_signature = encodeToHex(batcher_->sign(batch_header_bytes));
 
   batch->set_header(batch_header_bytes);
   batch->set_header_signature(batch_header_signature);
