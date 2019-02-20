@@ -20,7 +20,6 @@
 #include "rosbag2_storage/topic_metadata.hpp"
 
 #include "Poco/Crypto/DigestEngine.h"
-#include "Poco/RandomStream.h"
 
 namespace rosbag2_storage_plugins
 {
@@ -35,17 +34,23 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
 
-  std::shared_ptr<rcutils_uint8_array_t> computeGenesis(
+  std::shared_ptr<rcutils_uint8_array_t> computeTopicDigest(
       std::shared_ptr<rcutils_uint8_array_t> nonce,
-      const rosbag2_storage::TopicMetadata & topic);
+      const rosbag2_storage::TopicMetadata &topic);
 
-  std::shared_ptr<rcutils_uint8_array_t> computeHash(
+  std::shared_ptr<rcutils_uint8_array_t> computeTopicNonce(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      const rosbag2_storage::TopicMetadata &topic);
+
+  std::shared_ptr<rcutils_uint8_array_t> computeMessageDigest(
       std::shared_ptr<rcutils_uint8_array_t> nonce,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
-  std::shared_ptr<Poco::Crypto::DigestEngine> deigest_engine_;
 
+  Poco::DigestEngine::Digest computeHMAC(
+      std::string passphrase,
+      std::istringstream & istr);
 };
 
 }  // namespace rosbag2_storage_plugins

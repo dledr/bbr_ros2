@@ -80,6 +80,8 @@ private:
 
   std::shared_ptr<BbrNode> node_;
   std::shared_ptr<BbrHelper> helper_;
+  std::shared_ptr<rcutils_uint8_array_t> nonce_;
+
   std::shared_ptr<SqliteWrapper> database_;
   std::string database_name_;
   SqliteStatement write_statement_;
@@ -88,7 +90,7 @@ private:
   ReadQueryResult::Iterator current_message_row_;
   struct TopicInfo {
     int id;
-    std::shared_ptr<rcutils_uint8_array_t> hash;
+    std::shared_ptr<rcutils_uint8_array_t> digest;
     std::shared_ptr<rcutils_uint8_array_t> nonce;
   } ;
   std::unordered_map<std::string, TopicInfo> topics_;

@@ -48,6 +48,7 @@ BbrStorage::BbrStorage()
 {
   node_ = std::make_shared<BbrNode>("rosbag2_bbr");
   helper_ = std::make_shared<BbrHelper>();
+  nonce_ = helper_->createNonce();
 }
 
 void BbrStorage::open(
@@ -102,10 +103,10 @@ void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessa
             "' has not been created yet! Call 'create_topic' first.");
   }
 
-  topic_entry->second.hash = helper_->computeHash(topic_entry->second.hash, message);
-  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.hash);
+  topic_entry->second.digest = helper_->computeMessageDigest(topic_entry->second.digest, message);
+  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.digest);
   write_statement_->execute_and_reset();
-  node_->publish_checkpoint(topic_entry->second.hash, topic_entry->second.nonce, message);
+  node_->publish_checkpoint(topic_entry->second.digest, topic_entry->second.nonce, message);
 }
 
 bool BbrStorage::has_next()
@@ -148,31 +149,35 @@ void BbrStorage::initialize()
     "name TEXT NOT NULL," \
     "type TEXT NOT NULL," \
     "serialization_format TEXT NOT NULL,"
-    "bbr_nonce BLOB NOT NULL);";
+    "bbr_nonce BLOB NOT NULL,"
+    "bbr_digest BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
   create_table = "CREATE TABLE messages(" \
     "id INTEGER PRIMARY KEY," \
     "topic_id INTEGER NOT NULL," \
     "timestamp INTEGER NOT NULL, " \
     "data BLOB NOT NULL,"
-    "bbr_hash BLOB NOT NULL);";
+    "bbr_digest BLOB NOT NULL);";
   database_->prepare_statement(create_table)->execute_and_reset();
 }
 
 void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
 {
   if (topics_.find(topic.name) == std::end(topics_)) {
-    auto insert_topic =
-      database_->prepare_statement(
-      "INSERT INTO topics (name, type, serialization_format, bbr_nonce) VALUES (?, ?, ?, ?)");
-    auto bbr_nonce = helper_->createNonce();
-    insert_topic->bind(topic.name, topic.type, topic.serialization_format, bbr_nonce);
+    auto insert_topic = database_->prepare_statement(
+        "INSERT INTO topics (name, type, serialization_format, bbr_nonce, bbr_digest) VALUES (?, ?, ?, ?, ?)");
+
+    auto bbr_nonce = nonce_;
+    auto bbr_digest = helper_->computeTopicDigest(bbr_nonce, topic);
+    nonce_ = helper_->computeTopicNonce(bbr_digest, topic);
+
+    insert_topic->bind(topic.name, topic.type, topic.serialization_format, bbr_nonce, bbr_digest);
     insert_topic->execute_and_reset();
     BbrStorage::TopicInfo topic_info;
     topic_info.id = static_cast<int>(database_->get_last_insert_id());
-    topic_info.hash = bbr_nonce;
-    topic_info.nonce = bbr_nonce;
-    node_->create_record(bbr_nonce, topic);
+    topic_info.digest = bbr_digest;
+    topic_info.nonce = bbr_digest;
+    node_->create_record(bbr_digest, topic);
     topics_.emplace(topic.name, topic_info);
   }
 }
@@ -180,7 +185,7 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
 void BbrStorage::prepare_for_writing()
 {
   write_statement_ = database_->prepare_statement(
-    "INSERT INTO messages (timestamp, topic_id, data, bbr_hash) VALUES (?, ?, ?, ?);");
+    "INSERT INTO messages (timestamp, topic_id, data, bbr_digest) VALUES (?, ?, ?, ?);");
 }
 
 void BbrStorage::prepare_for_reading()
