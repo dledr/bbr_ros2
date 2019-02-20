@@ -4,6 +4,7 @@ project(bbr_rosbag2_storage_plugin)
 find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
+find_package(bbr_protobuf REQUIRED)
 find_package(pluginlib REQUIRED)
 find_package(Poco COMPONENTS Crypto)
 find_package(poco_vendor REQUIRED)
@@ -24,6 +25,7 @@ add_library(${PROJECT_NAME} SHARED
 
 ament_target_dependencies(${PROJECT_NAME}
   bbr_msgs
+  bbr_protobuf
   pluginlib
   Poco
   rclcpp
