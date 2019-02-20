@@ -17,10 +17,10 @@
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
 
-#include "bbr_sawtooth_protobuf/proto/batch.pb.h"
-#include "bbr_sawtooth_protobuf/proto/property.pb.h"
-#include "bbr_sawtooth_protobuf/proto/record.pb.h"
-#include "bbr_sawtooth_protobuf/proto/transaction.pb.h"
+#include "bbr_protobuf/proto/sawtooth/batch.pb.h"
+#include "bbr_protobuf/proto/sawtooth/property.pb.h"
+#include "bbr_protobuf/proto/sawtooth/record.pb.h"
+#include "bbr_protobuf/proto/sawtooth/transaction.pb.h"
 
 
 using std::placeholders::_1;

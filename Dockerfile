@@ -31,7 +31,7 @@ COPY ./bbr_common/package.xml bbr_common/
 COPY ./bbr_msgs/package.xml bbr_msgs/
 COPY ./bbr_rosbag2_storage_plugin/package.xml bbr_rosbag2_storage_plugin/
 COPY ./bbr_sawtooth_bridge/package.xml bbr_sawtooth_bridge/
-COPY ./bbr_sawtooth_protobuf/package.xml bbr_sawtooth_protobuf/
+COPY ./bbr_protobuf/package.xml bbr_protobuf/
 
 WORKDIR $ROS_WS
 # install package dependencies

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(bbr_sawtooth_protobuf)
+project(bbr_protobuf)
 
 find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
@@ -42,7 +42,7 @@ set(dependencies
   Protobuf
 )
 
-set(library_name bbr_sawtooth_protobuf)
+set(library_name ${PROJECT_NAME})
 
 include_directories(
   ${PROJECT_BINARY_DIR}

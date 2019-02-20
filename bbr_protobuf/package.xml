@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>bbr_sawtooth_protobuf</name>
+  <name>bbr_protobuf</name>
   <version>0.0.1</version>
   <description>Sawtooth Protobuf library for BBR</description>
   <maintainer email="roxfoxpox@gmail.com">Ruffin White</maintainer>
