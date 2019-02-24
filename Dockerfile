@@ -55,7 +55,7 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
       --cmake-args \
         --no-warn-unused-cli \
         -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
-        -DCMAKE_CXX_FLAGS="-Wno-unused-parameter"
+        -DCMAKE_CXX_FLAGS="-Wno-unused-parameter -Wno-unused-variable"
 
 # source workspace from entrypoint
 RUN sed --in-place --expression \
