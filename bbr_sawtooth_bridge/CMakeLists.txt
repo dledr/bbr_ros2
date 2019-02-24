@@ -5,7 +5,7 @@ find_package(ament_cmake REQUIRED)
 find_package(bbr_common REQUIRED)
 find_package(bbr_msgs REQUIRED)
 find_package(bbr_protobuf REQUIRED)
-find_package(Poco COMPONENTS Crypto)
+find_package(Poco COMPONENTS Crypto Net)
 find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 find_library(SECP256k1_LIBRARY libsecp256k1.so)
@@ -66,7 +66,18 @@ target_link_libraries(demo_cpp
   ${SECP256k1_LIBRARY}
 )
 
-install(TARGETS ${library_name} ${executable_name} demo_cpp
+add_executable(rest_cpp
+  src/bbr_sawtooth_bridge/rest_main.cpp
+)
+ament_target_dependencies(rest_cpp
+  ${dependencies}
+)
+target_link_libraries(rest_cpp
+  ${library_name}
+  ${SECP256k1_LIBRARY}
+)
+
+install(TARGETS ${library_name} ${executable_name} demo_cpp rest_cpp
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
