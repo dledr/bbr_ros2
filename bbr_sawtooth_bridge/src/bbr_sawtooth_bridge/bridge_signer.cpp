@@ -45,14 +45,14 @@ Signer::Signer(const std::string & privkey_str) {
 
   const unsigned char *privkey_ptr = (unsigned char*) privkey.c_str();
   std::unique_ptr<secp256k1_pubkey> pubkey_ptr(new secp256k1_pubkey);
-  int pubkey_created = secp256k1_ec_pubkey_create(
+  [[maybe_unused]] int pubkey_created = secp256k1_ec_pubkey_create(
       context_, pubkey_ptr.get(), privkey_ptr);
   assert(pubkey_created == 1);
 
 
   std::array<uint8_t, 33> pubkey_bytes;
   size_t serializedPubkeySize = pubkey_bytes.size();
-  int pubkey_serialize = secp256k1_ec_pubkey_serialize(
+  [[maybe_unused]] int pubkey_serialize = secp256k1_ec_pubkey_serialize(
       context_, pubkey_bytes.data(), &serializedPubkeySize, pubkey_ptr.get(), SECP256K1_EC_COMPRESSED);
   assert(pubkey_serialize == 1);
   pubkey = std::string((char*) pubkey_bytes.data());
