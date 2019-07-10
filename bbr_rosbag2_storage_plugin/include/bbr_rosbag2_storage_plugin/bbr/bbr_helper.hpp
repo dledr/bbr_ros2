@@ -51,6 +51,11 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
   Poco::DigestEngine::Digest computeHMAC(
       std::string passphrase,
       std::istringstream & istr);
+
+Poco::DigestEngine::Digest computeHMAC(
+    std::string passphrase,
+    std::istringstream & istr1,
+    std::istringstream & istr2);
 };
 
 }  // namespace rosbag2_storage_plugins

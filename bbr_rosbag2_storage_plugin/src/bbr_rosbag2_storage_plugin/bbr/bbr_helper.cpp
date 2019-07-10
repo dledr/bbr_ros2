@@ -118,14 +118,18 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeMessageDigest(
       reinterpret_cast<char*>(nonce->buffer),
       nonce->buffer_length);
 
-  std::string message_entry_str;
-  auto message_entry = MessageEntry();
-  message_entry.set_stamp(message->time_stamp);
-  message_entry.set_data(message->serialized_data->buffer, message->serialized_data->buffer_length);
-  message_entry.SerializeToString(&message_entry_str);
+  std::string message_info_str;
+  auto message_info = MessageEntry();
+  message_info.set_stamp(message->time_stamp);
+  message_info.SerializeToString(&message_info_str);
 
-  std::istringstream topic_info_istr(message_entry_str);
-  auto message_digest = computeHMAC(message_passphrase, topic_info_istr);
+  std::string message_data_str(
+      reinterpret_cast<char*>(message->serialized_data->buffer),
+      message->serialized_data->buffer_length);
+
+  std::istringstream topic_info_istr(message_info_str);
+  std::istringstream topic_data_istr(message_data_str);
+  auto message_digest = computeHMAC(message_passphrase, topic_info_istr, topic_data_istr);
 
   char* hash = reinterpret_cast<char*>(message_digest.data());
   return rosbag2_storage::make_serialized_message(hash, SHA256Engine::DIGEST_SIZE);
@@ -139,6 +143,20 @@ Poco::DigestEngine::Digest BbrHelper::computeHMAC(
   Poco::HMACEngine<SHA256Engine> hmac(passphrase);
   Poco::DigestOutputStream dos(hmac);
   Poco::StreamCopier::copyStream(istr, dos);
+  dos.close();
+  return hmac.digest();
+}
+
+Poco::DigestEngine::Digest BbrHelper::computeHMAC(
+    std::string passphrase,
+    std::istringstream & istr1,
+    std::istringstream & istr2)
+{
+  //TODO: rework to allow utilize protobuf SerializeToOstream
+  Poco::HMACEngine<SHA256Engine> hmac(passphrase);
+  Poco::DigestOutputStream dos(hmac);
+  Poco::StreamCopier::copyStream(istr1, dos);
+  Poco::StreamCopier::copyStream(istr2, dos);
   dos.close();
   return hmac.digest();
 }
