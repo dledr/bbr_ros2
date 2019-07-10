@@ -182,6 +182,19 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
   }
 }
 
+void BbrStorage::remove_topic(const rosbag2_storage::TopicMetadata & topic)
+{
+  // TODO: How should this class interface be handeled with DLT transactions?
+  // if (topics_.find(topic.name) != std::end(topics_)) {
+  //   auto delete_topic =
+  //     database_->prepare_statement(
+  //     "DELETE FROM topics where name = ? and type = ? and serialization_format = ?");
+  //   delete_topic->bind(topic.name, topic.type, topic.serialization_format);
+  //   delete_topic->execute_and_reset();
+  //   topics_.erase(topic.name);
+  // }
+}
+
 void BbrStorage::prepare_for_writing()
 {
   write_statement_ = database_->prepare_statement(
