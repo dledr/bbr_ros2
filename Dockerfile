@@ -1,4 +1,4 @@
-FROM ros:crystal
+FROM ros:dashing
 
 # install build dependencies
 RUN apt-get update && apt-get install -q -y \
