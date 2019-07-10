@@ -21,7 +21,7 @@ namespace rosbag2_storage_plugins
 BbrNode::BbrNode(const std::string & node_name)
 : rclcpp::Node(node_name)
 {
-  checkpoint_publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint");
+  checkpoint_publisher_ = this->create_publisher<bbr_msgs::msg::Checkpoint>("_checkpoint", 10);
   record_client_ = this->create_client<bbr_msgs::srv::CreateRecord>("_create_record");
   while (!record_client_->wait_for_service(std::chrono::seconds(1))) {
     if (!rclcpp::ok()) {

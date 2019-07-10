@@ -40,7 +40,7 @@ Bridge::Bridge(
   deigest_engine_()
 {
   checkpoint_subscription_ = this->create_subscription<bbr_msgs::msg::Checkpoint>(
-    "_checkpoint", std::bind(&Bridge::checkpoint_callback, this, _1));
+    "_checkpoint", 10, std::bind(&Bridge::checkpoint_callback, this, _1));
   create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
   signer_ = std::make_shared<Signer>(signer_privkey);
