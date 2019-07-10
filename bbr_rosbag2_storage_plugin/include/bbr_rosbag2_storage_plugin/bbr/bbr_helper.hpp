@@ -20,25 +20,12 @@
 #include "rosbag2_storage/topic_metadata.hpp"
 
 #include "Poco/Crypto/DigestEngine.h"
-#include "Poco/RandomStream.h"
 
 namespace rosbag2_storage_plugins
 {
 
 const size_t NONCE_SIZE = 32;
-
-class SHA256Engine
-    : public Poco::Crypto::DigestEngine {
- public:
-  enum {
-    BLOCK_SIZE = 64,
-    DIGEST_SIZE = NONCE_SIZE
-  };
-
-  SHA256Engine()
-      : DigestEngine("SHA256")
-  {}
-};
+const std::string DIGEST_ENGINE_NAME = "SHA256";
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 {
@@ -47,17 +34,28 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
 
-  std::shared_ptr<rcutils_uint8_array_t> computeGenesis(
+  std::shared_ptr<rcutils_uint8_array_t> computeTopicDigest(
       std::shared_ptr<rcutils_uint8_array_t> nonce,
-      const rosbag2_storage::TopicMetadata & topic);
+      const rosbag2_storage::TopicMetadata &topic);
 
-  std::shared_ptr<rcutils_uint8_array_t> computeHash(
+  std::shared_ptr<rcutils_uint8_array_t> computeTopicNonce(
+      std::shared_ptr<rcutils_uint8_array_t> nonce,
+      const rosbag2_storage::TopicMetadata &topic);
+
+  std::shared_ptr<rcutils_uint8_array_t> computeMessageDigest(
       std::shared_ptr<rcutils_uint8_array_t> nonce,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
-  std::shared_ptr<SHA256Engine> sha256engine_;
 
+  Poco::DigestEngine::Digest computeHMAC(
+      std::string passphrase,
+      std::istringstream & istr);
+
+Poco::DigestEngine::Digest computeHMAC(
+    std::string passphrase,
+    std::istringstream & istr1,
+    std::istringstream & istr2);
 };
 
 }  // namespace rosbag2_storage_plugins

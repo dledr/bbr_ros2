@@ -13,11 +13,9 @@
 // limitations under the License.
 
 #include <inttypes.h>
+#include <iostream>
 #include <memory>
-#include "bbr_sawtooth_bridge/bridge_node.hpp"
-#include "rclcpp/rclcpp.hpp"
-
-using Bridge = bbr_sawtooth_bridge::Bridge;
+#include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -25,20 +23,24 @@ int main(int argc, char * argv[])
   std::string KEY1_PRIV_HEX = "2f1e7b7a130d7ba9da0068b3bb0ba1d79e7e77110302c9f746c3c2a63fe40088";
 //  std::string KEY1_PUB_HEX = "026a2c795a9776f75464aa3bda3534c3154a6e91b357b1181d3f515110f84b67c5";
 
-  std::string KEY2_PRIV_HEX = "51b845c2cdde22fe646148f0b51eaf5feec8c82ee921d5e0cbe7619f3bb9c62d";
-//  std::string KEY2_PUB_HEX = "039c20a66b4ec7995391dbec1d8bb0e2c6e6fd63cd259ed5b877cb4ea98858cf6d";
-
-  std::string signer_privkey = bbr_sawtooth_bridge::decodeFromHex(KEY1_PRIV_HEX);
+  std::string privkey = bbr_sawtooth_bridge::decodeFromHex(KEY1_PRIV_HEX);
   std::cout << "\nKEY1_PRIV_HEX" << "\n";
-  std::cout << bbr_sawtooth_bridge::encodeToHex(signer_privkey) << "\n";
+  std::cout << bbr_sawtooth_bridge::encodeToHex(privkey) << "\n";
 
-  std::string batcher_privkey = bbr_sawtooth_bridge::decodeFromHex(KEY2_PRIV_HEX);
-  std::cout << "\nKEY2_PRIV_HEX" << "\n";
-  std::cout << bbr_sawtooth_bridge::encodeToHex(batcher_privkey) << "\n";
+  auto signer = bbr_sawtooth_bridge::Signer(privkey);
 
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<Bridge>(
-      "bbr_sawtooth_bridge", signer_privkey, batcher_privkey));
-  rclcpp::shutdown();
+  std::cout << "\nKEY1_PUB_HEX" << "\n";
+  std::cout << bbr_sawtooth_bridge::encodeToHex(signer.pubkey) << "\n";
+
+  std::string MSG1 = "test";
+  std::string signature = signer.sign(MSG1);
+
+//  std::string MSG1_KEY1_SIG = "5195115d9be2547b720ee74c23dd841842875db6eae1f5da8605b050a49e"
+//                              "702b4aa83be72ab7e3cb20f17c657011b49f4c8632be2745ba4de79e6aa0"
+//                              "5da57b35";
+
+  std::cout << "\nMSG1_KEY1_SIG" << "\n";
+  std::cout << bbr_sawtooth_bridge::encodeToHex(signature) << "\n";
+
   return 0;
 }

@@ -1,4 +1,4 @@
-FROM ros:crystal
+FROM ros:dashing
 
 # install build dependencies
 RUN apt-get update && apt-get install -q -y \
@@ -20,7 +20,6 @@ RUN echo "deb [arch=amd64] http://repo.sawtooth.me/ubuntu/nightly `lsb_release -
 # install sawtooth dependencies
 RUN apt-get update && apt-get install -q -y \
       python3-sawtooth-sdk \
-      python3-sawtooth-signing \
     && rm -rf /var/lib/apt/lists/*
 
 # copy all package.xml
@@ -31,12 +30,13 @@ COPY ./bbr_common/package.xml bbr_common/
 COPY ./bbr_msgs/package.xml bbr_msgs/
 COPY ./bbr_rosbag2_storage_plugin/package.xml bbr_rosbag2_storage_plugin/
 COPY ./bbr_sawtooth_bridge/package.xml bbr_sawtooth_bridge/
-COPY ./bbr_sawtooth_protobuf/package.xml bbr_sawtooth_protobuf/
+COPY ./bbr_protobuf/package.xml bbr_protobuf/
 
 WORKDIR $ROS_WS
 # install package dependencies
 RUN apt-get update && apt-get install -y \
-      ros-$ROS_DISTRO-ros2bag && \
+      ros-$ROS_DISTRO-ros2bag \
+      libsecp256k1-dev && \
     rosdep install -q -y \
       --from-paths \
         src \
