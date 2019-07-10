@@ -144,21 +144,23 @@ std::vector<rosbag2_storage::TopicMetadata> BbrStorage::get_all_topics_and_types
 
 void BbrStorage::initialize()
 {
-  std::string create_table = "CREATE TABLE topics(" \
+  std::string create_stmt = "CREATE TABLE topics(" \
     "id INTEGER PRIMARY KEY," \
     "name TEXT NOT NULL," \
     "type TEXT NOT NULL," \
     "serialization_format TEXT NOT NULL,"
     "bbr_nonce BLOB NOT NULL,"
     "bbr_digest BLOB NOT NULL);";
-  database_->prepare_statement(create_table)->execute_and_reset();
-  create_table = "CREATE TABLE messages(" \
+  database_->prepare_statement(create_stmt)->execute_and_reset();
+  create_stmt = "CREATE TABLE messages(" \
     "id INTEGER PRIMARY KEY," \
     "topic_id INTEGER NOT NULL," \
     "timestamp INTEGER NOT NULL, " \
     "data BLOB NOT NULL,"
     "bbr_digest BLOB NOT NULL);";
-  database_->prepare_statement(create_table)->execute_and_reset();
+  database_->prepare_statement(create_stmt)->execute_and_reset();
+  create_stmt = "CREATE INDEX timestamp_idx ON messages (timestamp ASC);";
+  database_->prepare_statement(create_stmt)->execute_and_reset();
 }
 
 void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
