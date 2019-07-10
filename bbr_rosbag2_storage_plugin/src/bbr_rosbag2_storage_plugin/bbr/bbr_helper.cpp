@@ -119,7 +119,7 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeMessageDigest(
       nonce->buffer_length);
 
   std::string message_info_str;
-  auto message_info = MessageEntry();
+  auto message_info = MessageInfo();
   message_info.set_stamp(message->time_stamp);
   message_info.SerializeToString(&message_info_str);
 

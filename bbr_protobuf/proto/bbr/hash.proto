@@ -26,7 +26,7 @@ message TopicInfo {
   // string id = 2;
 }
 
-message MessageEntry {
-  int64 stamp = 2;
-  bytes data = 1;
+message MessageInfo {
+  int64 stamp = 1;
+  // bytes data = 2;
 }
