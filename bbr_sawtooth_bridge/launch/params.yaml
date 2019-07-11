@@ -1,0 +1,5 @@
+bbr_sawtooth_bridge:
+  ros__parameters:
+    signer_key_path: "signer_key.txt"
+    batcher_key_path: "batcher_key.txt"
+    rest_url: "http://127.0.0.1:8008"
