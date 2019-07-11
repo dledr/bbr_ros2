@@ -14,6 +14,7 @@
 
 #include <inttypes.h>
 #include <memory>
+#include <fstream>
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
 
@@ -32,20 +33,25 @@ namespace bbr_sawtooth_bridge
 
 Bridge::Bridge(
     const std::string & node_name,
-    const std::string & signer_privkey,
-    const std::string & batcher_privkey)
+    const std::string & signer_key_path,
+    const std::string & batcher_key_path)
 : rclcpp::Node(node_name),
   batcher_(),
   signer_(),
   deigest_engine_()
 {
+
+  std::string zmq_url("zmq_url");
+  this->declare_parameter(zmq_url);
+
+  signer_ = std::make_shared<Signer>(this->path_to_key(signer_key_path));
+  batcher_ = std::make_shared<Signer>(this->path_to_key(batcher_key_path));
+  deigest_engine_ = std::make_shared<Poco::Crypto::DigestEngine>("SHA512");
+
   checkpoint_subscription_ = this->create_subscription<bbr_msgs::msg::Checkpoint>(
     "_checkpoint", 10, std::bind(&Bridge::checkpoint_callback, this, _1));
   create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
     "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
-  signer_ = std::make_shared<Signer>(signer_privkey);
-  batcher_ = std::make_shared<Signer>(batcher_privkey);
-  deigest_engine_ = std::make_shared<Poco::Crypto::DigestEngine>("SHA512");
 }
 
 void Bridge::create_record_callback(
@@ -58,6 +64,24 @@ void Bridge::create_record_callback(
     this->get_logger(),
     "request: %s", request->name.c_str());
   response->success = true;
+}
+
+std::string Bridge::path_to_key(
+    std::string key_path)
+{
+  std::ifstream key_file(key_path);
+
+  if (!key_file.good()) {
+    RCLCPP_ERROR(this->get_logger(), "Couldn't open input key file: %s", key_path.c_str());
+  }
+
+  std::string key_hex;
+  std::getline(key_file, key_hex);
+
+  RCLCPP_DEBUG(this->get_logger(), "key path: '%s'", key_path.c_str());
+  RCLCPP_DEBUG(this->get_logger(), "key string: %s", key_hex.c_str());
+
+  return bbr_sawtooth_bridge::decodeFromHex(key_hex);
 }
 
 void Bridge::checkpoint_callback(

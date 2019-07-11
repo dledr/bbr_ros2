@@ -34,19 +34,22 @@ class Bridge
  public:
   explicit Bridge(
       const std::string & node_name,
-      const std::string & signer_privkey,
-      const std::string & batcher_privkey);
+      const std::string & signer_key_path,
+      const std::string & batcher_key_path);
   ~Bridge() override = default;
 
-  void create_record_callback(
-    const std::shared_ptr<rmw_request_id_t> request_header,
-    const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
-    const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response);
+ private:
 
   void checkpoint_callback(
       const bbr_msgs::msg::Checkpoint::SharedPtr msg);
 
- private:
+  void create_record_callback(
+      const std::shared_ptr<rmw_request_id_t> request_header,
+      const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
+      const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response);
+
+  std::string path_to_key(std::string key_path);
+
   rclcpp::Subscription<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_subscription_;
   rclcpp::Service<bbr_msgs::srv::CreateRecord>::SharedPtr create_record_server_;
 
