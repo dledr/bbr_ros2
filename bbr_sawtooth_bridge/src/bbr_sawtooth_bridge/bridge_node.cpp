@@ -70,9 +70,9 @@ Bridge::Bridge(
   deigest_engine_ = std::make_shared<Poco::Crypto::DigestEngine>("SHA512");
 
   checkpoints_subscription_ = this->create_subscription<bbr_msgs::msg::CheckpointArray>(
-    "_checkpoint", 10, std::bind(&Bridge::checkpoints_callback, this, _1));
+    "checkpoints", 10, std::bind(&Bridge::checkpoints_callback, this, _1));
   create_records_server_ = this->create_service<bbr_msgs::srv::CreateRecords>(
-    "_create_record", std::bind(&Bridge::create_records_callback, this, _1, _2, _3));
+    "create_records", std::bind(&Bridge::create_records_callback, this, _1, _2, _3));
 }
 
 void Bridge::create_records_callback(
