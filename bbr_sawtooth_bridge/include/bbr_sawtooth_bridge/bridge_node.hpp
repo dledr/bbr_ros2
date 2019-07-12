@@ -19,7 +19,11 @@
 #include <zmqpp/socket.hpp>
 
 #include "bbr_msgs/msg/checkpoint.hpp"
-#include "bbr_msgs/srv/create_record.hpp"
+#include "bbr_msgs/msg/checkpoint_array.hpp"
+#include "bbr_msgs/msg/record.hpp"
+#include "bbr_msgs/msg/record_array.hpp"
+#include "bbr_msgs/srv/create_records.hpp"
+
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
 
 #include "rclcpp/rclcpp.hpp"
@@ -43,18 +47,18 @@ class Bridge
 
  private:
 
-  void checkpoint_callback(
-      const bbr_msgs::msg::Checkpoint::SharedPtr msg);
+  void checkpoints_callback(
+      const bbr_msgs::msg::CheckpointArray::SharedPtr msg);
 
-  void create_record_callback(
+  void create_records_callback(
       const std::shared_ptr<rmw_request_id_t> request_header,
-      const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
-      const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response);
+      const std::shared_ptr<bbr_msgs::srv::CreateRecords::Request> request,
+      const std::shared_ptr<bbr_msgs::srv::CreateRecords::Response> response);
 
   std::string path_to_key(std::string key_path);
 
-  rclcpp::Subscription<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_subscription_;
-  rclcpp::Service<bbr_msgs::srv::CreateRecord>::SharedPtr create_record_server_;
+  rclcpp::Subscription<bbr_msgs::msg::CheckpointArray>::SharedPtr checkpoints_subscription_;
+  rclcpp::Service<bbr_msgs::srv::CreateRecords>::SharedPtr create_records_server_;
 
   std::shared_ptr<Signer> batcher_;
   std::shared_ptr<Signer> signer_;

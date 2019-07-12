@@ -69,21 +69,22 @@ Bridge::Bridge(
   batcher_ = std::make_shared<Signer>(this->path_to_key(batcher_key_path));
   deigest_engine_ = std::make_shared<Poco::Crypto::DigestEngine>("SHA512");
 
-  checkpoint_subscription_ = this->create_subscription<bbr_msgs::msg::Checkpoint>(
-    "_checkpoint", 10, std::bind(&Bridge::checkpoint_callback, this, _1));
-  create_record_server_ = this->create_service<bbr_msgs::srv::CreateRecord>(
-    "_create_record", std::bind(&Bridge::create_record_callback, this, _1, _2, _3));
+  checkpoints_subscription_ = this->create_subscription<bbr_msgs::msg::CheckpointArray>(
+    "_checkpoint", 10, std::bind(&Bridge::checkpoints_callback, this, _1));
+  create_records_server_ = this->create_service<bbr_msgs::srv::CreateRecords>(
+    "_create_record", std::bind(&Bridge::create_records_callback, this, _1, _2, _3));
 }
 
-void Bridge::create_record_callback(
+void Bridge::create_records_callback(
   const std::shared_ptr<rmw_request_id_t> request_header,
-  const std::shared_ptr<bbr_msgs::srv::CreateRecord::Request> request,
-  const std::shared_ptr<bbr_msgs::srv::CreateRecord::Response> response)
+  const std::shared_ptr<bbr_msgs::srv::CreateRecords::Request> request,
+  const std::shared_ptr<bbr_msgs::srv::CreateRecords::Response> response)
 {
   (void)request_header;
+  auto record = request->record_array.records[0];
   RCLCPP_INFO(
     this->get_logger(),
-    "request: %s", request->name.c_str());
+    "request: %s", record.topic_name.c_str());
   response->success = true;
 }
 
@@ -105,12 +106,13 @@ std::string Bridge::path_to_key(
   return bbr_sawtooth_bridge::decodeFromHex(key_hex);
 }
 
-void Bridge::checkpoint_callback(
-    const bbr_msgs::msg::Checkpoint::SharedPtr msg)
+void Bridge::checkpoints_callback(
+    const bbr_msgs::msg::CheckpointArray::SharedPtr msg)
 {
+  auto checkpoint = msg->checkpoints[0];
   RCLCPP_INFO(
     this->get_logger(),
-    "I heard: %d", msg->stamp);
+    "I heard: %d", checkpoint.stamp);
 
 //  auto property = Property();
 //  auto associated_agent = Record::AssociatedAgent();
