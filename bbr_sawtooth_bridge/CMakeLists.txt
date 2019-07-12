@@ -9,6 +9,7 @@ find_package(Poco COMPONENTS Crypto)
 find_package(poco_vendor REQUIRED)
 find_package(rclcpp REQUIRED)
 find_library(SECP256k1_LIBRARY libsecp256k1.so)
+find_library(ZMQ_LIB zmq)
 
 
 bbr_package()
@@ -41,6 +42,7 @@ add_library(${library_name} SHARED
 ament_target_dependencies(${library_name}
   ${dependencies}
   ${SECP256k1_LIBRARY}
+  ${ZMQ_LIB}
 )
 
 set(executable_name bridge_cpp)
@@ -53,6 +55,9 @@ ament_target_dependencies(${executable_name}
 target_link_libraries(${executable_name}
   ${library_name}
   ${SECP256k1_LIBRARY}
+  ${ZMQ_LIB}
+  zmq
+  zmqpp
 )
 
 add_executable(demo_cpp
@@ -64,6 +69,9 @@ ament_target_dependencies(demo_cpp
 target_link_libraries(demo_cpp
   ${library_name}
   ${SECP256k1_LIBRARY}
+  ${ZMQ_LIB}
+  zmq
+  zmqpp
 )
 
 install(TARGETS ${library_name} ${executable_name} demo_cpp
