@@ -21,9 +21,10 @@
 
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
 
+#include "bbr_protobuf/proto/bbr/property.pb.h"
+#include "bbr_protobuf/proto/bbr/record.pb.h"
+
 #include "bbr_protobuf/proto/sawtooth/batch.pb.h"
-#include "bbr_protobuf/proto/sawtooth/property.pb.h"
-#include "bbr_protobuf/proto/sawtooth/record.pb.h"
 #include "bbr_protobuf/proto/sawtooth/transaction.pb.h"
 #include "bbr_protobuf/proto/sawtooth/client_batch_submit.pb.h"
 #include "bbr_protobuf/proto/sawtooth/validator.pb.h"
