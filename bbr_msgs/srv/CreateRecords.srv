@@ -1,0 +1,7 @@
+# Create a new records with an initial checkpoint data
+
+# CreateRecord record_array, respective records to create
+RecordArray record_array
+
+---
+bool success
