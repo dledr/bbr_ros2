@@ -14,6 +14,7 @@
 
 #include <inttypes.h>
 #include <memory>
+#include <fcntl.h>
 #include <fstream>
 
 #include <zmq.h>
@@ -26,6 +27,8 @@
 #include "bbr_protobuf/proto/sawtooth/transaction.pb.h"
 #include "bbr_protobuf/proto/sawtooth/client_batch_submit.pb.h"
 #include "bbr_protobuf/proto/sawtooth/validator.pb.h"
+
+#include "Poco/UUIDGenerator.h"
 
 
 using std::placeholders::_1;
@@ -164,6 +167,26 @@ void Bridge::checkpoint_callback(
 
   std::string batch_list_bytes;
   batch_list.SerializeToString(&batch_list_bytes);
+
+//  const std::string& correlation_id = encodeToHex(
+//      Poco::UUIDGenerator().createRandom().toString());
+//
+//  int fd = open ("/home/ruffsl/Desktop/sawtooth/batches.intkey", O_RDONLY);
+//  BatchList batch_list2;
+//  batch_list2.ParseFromFileDescriptor(fd);
+//
+//  std::string batch_list2_bytes;
+//  batch_list2.SerializeToString(&batch_list2_bytes);
+//
+//  Message message;
+//  message.set_message_type(Message::CLIENT_BATCH_SUBMIT_REQUEST);
+//  message.set_correlation_id(correlation_id);
+//  message.set_content(batch_list2_bytes);
+//
+//  std::string message_data;
+//  message.SerializeToString(&message_data);
+//
+//  this->socket_.send(message_data);
 
 }
 
