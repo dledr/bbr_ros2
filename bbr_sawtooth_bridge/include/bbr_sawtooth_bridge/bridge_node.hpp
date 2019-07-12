@@ -15,6 +15,9 @@
 #ifndef BBR_SAWTOOTH_BRIDGE__BBR__NODE_HPP_
 #define BBR_SAWTOOTH_BRIDGE__BBR__NODE_HPP_
 
+#include <zmqpp/context.hpp>
+#include <zmqpp/socket.hpp>
+
 #include "bbr_msgs/msg/checkpoint.hpp"
 #include "bbr_msgs/srv/create_record.hpp"
 #include "bbr_sawtooth_bridge/bridge_signer.hpp"
@@ -57,6 +60,9 @@ class Bridge
   std::shared_ptr<Signer> signer_;
 
   std::shared_ptr<Poco::Crypto::DigestEngine> deigest_engine_;
+
+  zmqpp::context context_;
+  zmqpp::socket socket_;
 };
 
 }  // namespace bbr_sawtooth_bridge

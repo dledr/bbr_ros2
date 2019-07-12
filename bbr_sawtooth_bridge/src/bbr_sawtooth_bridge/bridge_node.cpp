@@ -16,12 +16,16 @@
 #include <memory>
 #include <fstream>
 
+#include <zmq.h>
+
 #include "bbr_sawtooth_bridge/bridge_node.hpp"
 
 #include "bbr_protobuf/proto/sawtooth/batch.pb.h"
 #include "bbr_protobuf/proto/sawtooth/property.pb.h"
 #include "bbr_protobuf/proto/sawtooth/record.pb.h"
 #include "bbr_protobuf/proto/sawtooth/transaction.pb.h"
+#include "bbr_protobuf/proto/sawtooth/client_batch_submit.pb.h"
+#include "bbr_protobuf/proto/sawtooth/validator.pb.h"
 
 
 using std::placeholders::_1;
@@ -38,11 +42,25 @@ Bridge::Bridge(
 : rclcpp::Node(node_name),
   batcher_(),
   signer_(),
-  deigest_engine_()
+  deigest_engine_(),
+  context_(),
+  socket_(this->context_, zmqpp::socket_type::dealer)
 {
 
-  std::string zmq_url("zmq_url");
-  this->declare_parameter(zmq_url);
+  std::string zmq_url;
+  this->declare_parameter("zmq_url");
+  this->get_parameter("zmq_url", zmq_url);
+
+  try {
+    this->socket_.connect(zmq_url.c_str());
+    RCLCPP_INFO(
+        this->get_logger(),
+        "Connection to validator succeeded");
+  } catch(std::exception& e) {
+    RCLCPP_ERROR(this->get_logger(), "Connection to validator failed: %s", e.what());
+    throw;
+  }
+
 
   signer_ = std::make_shared<Signer>(this->path_to_key(signer_key_path));
   batcher_ = std::make_shared<Signer>(this->path_to_key(batcher_key_path));
