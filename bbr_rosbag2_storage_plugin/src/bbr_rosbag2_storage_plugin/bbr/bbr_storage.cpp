@@ -106,7 +106,7 @@ void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessa
   topic_entry->second.digest = helper_->computeMessageDigest(topic_entry->second.digest, message);
   write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.digest);
   write_statement_->execute_and_reset();
-  node_->publish_checkpoint(topic_entry->second.digest, topic_entry->second.nonce, message);
+  node_->publish_checkpoint(topic_entry->second.nonce, topic_entry->second.digest, message);
 }
 
 bool BbrStorage::has_next()
