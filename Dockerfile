@@ -1,17 +1,17 @@
 FROM ros:dashing
 
 # copy all package.xml
-ENV ROS_WS /opt/ros_ws
-RUN mkdir -p $ROS_WS/src
-WORKDIR $ROS_WS/src/bbr_ros2
+ENV BBR_WS /opt/bbr_ws
+RUN mkdir -p $BBR_WS/src
+WORKDIR $BBR_WS/src/bbr_ros2
 COPY ./bbr_common/package.xml bbr_common/
 COPY ./bbr_msgs/package.xml bbr_msgs/
 COPY ./bbr_rosbag2_storage_plugin/package.xml bbr_rosbag2_storage_plugin/
 COPY ./bbr_sawtooth_bridge/package.xml bbr_sawtooth_bridge/
 COPY ./bbr_protobuf/package.xml bbr_protobuf/
 
-WORKDIR $ROS_WS
 # install package dependencies
+WORKDIR $BBR_WS
 RUN apt-get update && apt-get install -y \
       ros-$ROS_DISTRO-ros2bag && \
     rosdep update && \
@@ -36,5 +36,5 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
 
 # source workspace from entrypoint
 RUN sed --in-place --expression \
-      '$isource "$ROS_WS/install/setup.bash"' \
+      '$isource "$BBR_WS/install/setup.bash"' \
       /ros_entrypoint.sh
