@@ -11,9 +11,12 @@ bbr_package()
 
 set(msg_files
   "msg/Checkpoint.msg"
+  "msg/CheckpointArray.msg"
+  "msg/Record.msg"
+  "msg/RecordArray.msg"
 )
 set(srv_files
-  "srv/CreateRecord.srv"
+  "srv/CreateRecords.srv"
 )
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}

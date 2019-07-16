@@ -1,27 +1,5 @@
 FROM ros:dashing
 
-# install build dependencies
-RUN apt-get update && apt-get install -q -y \
-      build-essential \
-      cmake \
-      git \
-      python3-colcon-common-extensions \
-      python3-vcstool \
-      wget \
-    && rm -rf /var/lib/apt/lists/*
-
-# setup sawtooth keys
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 44FC67F19B2466EA
-
-# setup sources.list
-RUN echo "deb [arch=amd64] http://repo.sawtooth.me/ubuntu/nightly `lsb_release -sc` universe" > /etc/apt/sources.list.d/sawtooth-nightly.list
-# http://repo.sawtooth.me/ubuntu/1.0/stable
-
-# install sawtooth dependencies
-RUN apt-get update && apt-get install -q -y \
-      python3-sawtooth-sdk \
-    && rm -rf /var/lib/apt/lists/*
-
 # copy all package.xml
 ENV ROS_WS /opt/ros_ws
 RUN mkdir -p $ROS_WS/src
@@ -35,8 +13,8 @@ COPY ./bbr_protobuf/package.xml bbr_protobuf/
 WORKDIR $ROS_WS
 # install package dependencies
 RUN apt-get update && apt-get install -y \
-      ros-$ROS_DISTRO-ros2bag \
-      libsecp256k1-dev && \
+      ros-$ROS_DISTRO-ros2bag && \
+    rosdep update && \
     rosdep install -q -y \
       --from-paths \
         src \

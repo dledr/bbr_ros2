@@ -20,7 +20,10 @@
 #include <chrono>
 
 #include "bbr_msgs/msg/checkpoint.hpp"
-#include "bbr_msgs/srv/create_record.hpp"
+#include "bbr_msgs/msg/checkpoint_array.hpp"
+#include "bbr_msgs/msg/record.hpp"
+#include "bbr_msgs/msg/record_array.hpp"
+#include "bbr_msgs/srv/create_records.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -51,8 +54,8 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
 
  private:
   rclcpp::TimerBase::SharedPtr timer_;
-  rclcpp::Publisher<bbr_msgs::msg::Checkpoint>::SharedPtr checkpoint_publisher_;
-  rclcpp::Client<bbr_msgs::srv::CreateRecord>::SharedPtr record_client_;
+  rclcpp::Publisher<bbr_msgs::msg::CheckpointArray>::SharedPtr checkpoints_publisher_;
+  rclcpp::Client<bbr_msgs::srv::CreateRecords>::SharedPtr records_client_;
 };
 
 }  // namespace rosbag2_storage_plugins
