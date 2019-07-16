@@ -13,9 +13,8 @@ COPY ./bbr_protobuf/package.xml bbr_protobuf/
 WORKDIR $ROS_WS
 # install package dependencies
 RUN apt-get update && apt-get install -y \
-      ros-$ROS_DISTRO-ros2bag \
-      libsecp256k1-dev \
-      libzmqpp-dev && \
+      ros-$ROS_DISTRO-ros2bag && \
+    rosdep update && \
     rosdep install -q -y \
       --from-paths \
         src \

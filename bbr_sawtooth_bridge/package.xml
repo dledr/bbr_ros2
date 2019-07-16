@@ -14,8 +14,8 @@
   <depend>poco_vendor</depend>
   <depend>protobuf-dev</depend>
   <depend>rclcpp</depend>
-  <!--<depend>libsecp256k1-dev</depend>-->
-  <!--<depend>libzmqpp-dev</depend>-->
+  <depend>libsecp256k1-dev</depend>
+  <depend>libzmqpp-dev</depend>
 
   <!-- <exec_depend>bbr_msgs</exec_depend> -->
   <exec_depend>launch_ros</exec_depend>
