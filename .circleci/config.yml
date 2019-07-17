@@ -148,7 +148,7 @@ executors:
       - image: dledr/bbr_ros2:master
     working_directory: /opt/bbr_ws
     environment:
-      MAKEFLAGS: "-j 1 -l 1"
+      # MAKEFLAGS: "-j 1 -l 1"
 
 jobs:
   debug_build:
