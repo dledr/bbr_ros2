@@ -48,8 +48,8 @@ class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
       const rosbag2_storage::TopicMetadata & topic);
 
   void publish_checkpoint(
-      std::shared_ptr<rcutils_uint8_array_t> hash,
       std::shared_ptr<rcutils_uint8_array_t> nonce,
+      std::shared_ptr<rcutils_uint8_array_t> hash,
       std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
  private:
