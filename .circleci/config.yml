@@ -7,7 +7,21 @@ references:
           stat -c '%y' /opt/ros/$ROS_DISTRO/setup.sh | \
             sha256sum | \
             awk '{print "distro "$1}' > /opt/ros/$ROS_DISTRO/checksum.txt
+            find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
+              sort -k 2 | \
+              cut -d" " -f1 | \
+              sha256sum | \
+              awk '{print "package "$1}' > /tmp/package.txt
           rm -rf $BBR_WS/*
+  post_checkout: &post_checkout
+    run:
+        name: Post Checkout
+        command: |
+          find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
+            sort -k 2 | \
+            cut -d" " -f1 | \
+            sha256sum | \
+            awk '{print "package "$1}' > $BBR_WS/package.txt
   install_dependencies: &install_dependencies
     run:
         name: Install Dependencies
@@ -18,20 +32,23 @@ references:
             cut -d" " -f1 | \
             sha256sum | \
             awk '{print "source "$1}' >> $BBR_WS/checksum.txt
-          apt-get update
-          dependencies=$(
-            rosdep install -q -y \
-              --from-paths \
-                $ROS_WS/src \
-                src \
-              --ignore-src \
-              --verbose | \
-            awk '$1 ~ /^resolution\:/' | \
-            awk -F'[][]' '{print $2}' | \
-            tr -d \, | xargs -n1 | sort -u | xargs)
-          dpkg -s $dependencies | \
-            sha256sum | \
-            awk '{print "dependencies "$1}' >> $BBR_WS/checksum.txt
+          if ! cmp /tmp/package.txt $BBR_WS/package.txt 2>&1
+          then
+            echo "Install Dependencies"
+            apt-get update
+            dependencies=$(
+              rosdep install -q -y \
+                --from-paths \
+                  src \
+                --ignore-src \
+                --verbose | \
+              awk '$1 ~ /^resolution\:/' | \
+              awk -F'[][]' '{print $2}' | \
+              tr -d \, | xargs -n1 | sort -u | xargs)
+            dpkg -s $dependencies | \
+              sha256sum | \
+              awk '{print "dependencies "$1}' >> $BBR_WS/checksum.txt
+          fi
   store_build_checksum: &store_build_checksum
     store_artifacts:
         path: checksum.txt
@@ -100,6 +117,7 @@ commands:
     description: "Checkout Source"
     steps:
       - *pre_checkout
+      - *post_checkout
       - checkout:
           path: src/bbr_ros2
       - *post_checkout
