@@ -64,7 +64,7 @@ references:
         then
             echo "Skipping Source Build"
         else
-            . $ROS_WS/install/setup.sh
+            . /opt/ros/$ROS_DISTRO/setup.sh
             colcon build \
               --symlink-install \
               --cmake-args \
