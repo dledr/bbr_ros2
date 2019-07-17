@@ -7,11 +7,11 @@ references:
           stat -c '%y' /opt/ros/$ROS_DISTRO/setup.sh | \
             sha256sum | \
             awk '{print "distro "$1}' > /opt/ros/$ROS_DISTRO/checksum.txt
-            find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
-              sort -k 2 | \
-              cut -d" " -f1 | \
-              sha256sum | \
-              awk '{print "package "$1}' > /tmp/package.txt
+          find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
+            sort -k 2 | \
+            cut -d" " -f1 | \
+            sha256sum | \
+            awk '{print "package "$1}' > /tmp/package.txt
           rm -rf $BBR_WS/*
   post_checkout: &post_checkout
     run:
@@ -117,9 +117,9 @@ commands:
     description: "Checkout Source"
     steps:
       - *pre_checkout
-      - *post_checkout
       - checkout:
           path: src/bbr_ros2
+      - *post_checkout
       - *post_checkout
   build_source:
     description: "Build Source"
