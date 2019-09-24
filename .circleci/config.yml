@@ -63,7 +63,7 @@ references:
               cat << parameters.underlay >>/checksum.txt > checksum.txt
               vcs export --exact src | \
                 (echo vcs_export && cat) >> checksum.txt
-              sha256sum checksum.txt >> checksum.txt
+              sha256sum $PWD/checksum.txt >> checksum.txt
               apt-get update
               dependencies=$(
                 rosdep install -q -y \
@@ -75,7 +75,7 @@ references:
                 tr -d \, | xargs -n1 | sort -u | xargs)
               dpkg -s $dependencies | \
                 (echo workspace_dependencies && cat) >> checksum.txt
-              sha256sum checksum.txt >> checksum.txt
+              sha256sum $PWD/checksum.txt >> checksum.txt
     setup_workspace:
       description: "Setup Workspace"
       parameters:
@@ -176,14 +176,14 @@ references:
     run:
       name: Pre Checkout
       command: |
-        mkdir -p $ROS_WS
-        ln -s /opt/ros/$ROS_DISTRO $ROS_WS/install
+        mkdir -p $ROS_WS && cd $ROS_WS
+        ln -s /opt/ros/$ROS_DISTRO install
         echo $CACHE_NONCE | \
-          (echo cache_nonce && cat) >> $ROS_WS/checksum.txt
-        sha256sum $ROS_WS/checksum.txt >> $ROS_WS/checksum.txt
+          (echo cache_nonce && cat) >> checksum.txt
+        sha256sum $PWD/checksum.txt >> checksum.txt
         TZ=utc stat -c '%y' /ros_entrypoint.sh | \
-          (echo ros_entrypoint && cat) >> $ROS_WS/checksum.txt
-        sha256sum $ROS_WS/checksum.txt >> $ROS_WS/checksum.txt
+          (echo ros_entrypoint && cat) >> checksum.txt
+        sha256sum $PWD/checksum.txt >> checksum.txt
         rm -rf $OVERLAY_WS/*
   on_checkout: &on_checkout
     checkout:
