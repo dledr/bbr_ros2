@@ -306,35 +306,41 @@ jobs:
       - checkout_source
       - setup_dependencies
       - build_source
-  release_build:
-    executor: release_exec
-    <<: *debug_build
-  debug_test:
-    executor: debug_exec
-    parallelism: 1
-    steps:
-      - restore_build
       - test_build
       # - report_coverage
-  release_test: &release_test
+  release_build:
     executor: release_exec
-    parallelism: 1
     steps:
-      - restore_build
+      - checkout_source
+      - setup_dependencies
+      - build_source
       - test_build
+  # debug_test:
+  #   executor: debug_exec
+  #   parallelism: 1
+  #   steps:
+  #     - restore_build
+  #     - test_build
+  #     # - report_coverage
+  # release_test: &release_test
+  #   executor: release_exec
+  #   parallelism: 1
+  #   steps:
+  #     - restore_build
+  #     - test_build
 
 workflows:
   version: 2
   build_and_test: &build_and_test
     jobs:
       - debug_build
-      - debug_test:
-          requires:
-            - debug_build
+      # - debug_test:
+      #     requires:
+      #       - debug_build
       - release_build
-      - release_test:
-          requires:
-            - release_build
+      # - release_test:
+      #     requires:
+      #       - release_build
   nightly:
     <<: *build_and_test
     triggers:
