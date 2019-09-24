@@ -1,189 +1,346 @@
 version: 2.1
+
 references:
+  common_environment: &common_environment
+    ROS_WS: "/opt/ros_ws"
+    OVERLAY_WS: "/opt/overlay_ws"
+    CCACHE_LOGFILE: "/tmp/ccache.log"
+    CCACHE_MAXSIZE: "200M"
+    # MAKEFLAGS: "-j 1 -l 2"
+  common_commands: &common_commands
+    restore_from_cache:
+      description: "Restore From Cache"
+      parameters:
+        key:
+          type: string
+        workspace:
+          type: string
+      steps:
+        - restore_cache:
+            name: Restore Cache << parameters.key >>
+            key: "<< parameters.key >>-v1\
+              -{{ arch }}\
+              -{{ .Branch }}\
+              -{{ .Environment.CIRCLE_PR_NUMBER }}\
+              -{{ checksum  \"<< parameters.workspace >>/checksum.txt\" }}"
+    save_to_cache:
+      description: "Save To Cache"
+      parameters:
+        key:
+          type: string
+        workspace:
+          type: string
+        path:
+          type: string
+        when:
+          type: string
+          default: on_success
+      steps:
+        - save_cache:
+            name: Save Cache << parameters.key >>
+            key: "<< parameters.key >>-v1\
+              -{{ arch }}\
+              -{{ .Branch }}\
+              -{{ .Environment.CIRCLE_PR_NUMBER }}\
+              -{{ checksum  \"<< parameters.workspace >>/checksum.txt\" }}\
+              -{{ epoch }}"
+            paths:
+              - << parameters.path >>
+            when: << parameters.when >>
+    install_dependencies:
+      description: "Install Dependencies"
+      parameters:
+        underlay:
+          type: string
+        workspace:
+          type: string
+      steps:
+        - run:
+            name: Install Dependencies | << parameters.workspace >>
+            working_directory: << parameters.workspace >>
+            command: |
+              . << parameters.underlay >>/install/setup.sh
+              cat << parameters.underlay >>/checksum.txt > checksum.txt
+              vcs export --exact src | \
+                (echo vcs_export && cat) >> checksum.txt
+              sha256sum checksum.txt >> checksum.txt
+              apt-get update
+              dependencies=$(
+                rosdep install -q -y \
+                  --from-paths src \
+                  --ignore-src \
+                  --verbose | \
+                awk '$1 ~ /^resolution\:/' | \
+                awk -F'[][]' '{print $2}' | \
+                tr -d \, | xargs -n1 | sort -u | xargs)
+              dpkg -s $dependencies | \
+                (echo workspace_dependencies && cat) >> checksum.txt
+              sha256sum checksum.txt >> checksum.txt
+    setup_workspace:
+      description: "Setup Workspace"
+      parameters:
+        underlay:
+          type: string
+        key:
+          type: string
+        workspace:
+          type: string
+        mixins:
+          type: string
+        build:
+          default: true
+          type: boolean
+      steps:
+        - store_artifacts:
+            path: << parameters.workspace >>/checksum.txt
+        - restore_from_cache:
+            key: << parameters.key >>
+            workspace: << parameters.workspace >>
+        - when:
+            condition: << parameters.build >>
+            steps:
+              - run:
+                  name: Build Workspace | << parameters.workspace >>
+                  working_directory: << parameters.workspace >>
+                  command: |
+                    if [ -d install ] && [ ! -f build_failed ]
+                    then
+                      echo "Skipping Build"
+                    else
+                      . << parameters.underlay >>/install/setup.sh
+                      rm -rf build install log
+                      colcon build \
+                        --symlink-install \
+                        --mixin << parameters.mixins >> \
+                        --cmake-args \
+                          --no-warn-unused-cli \
+                          -DCMAKE_CXX_FLAGS="-Wno-unused-parameter"
+                      rm -f build_failed
+                    fi
+              - save_to_cache:
+                  key: << parameters.key >>
+                  path: << parameters.workspace >>
+                  workspace: << parameters.workspace >>
+              - run:
+                  name: Copy Build Logs
+                  working_directory: << parameters.workspace >>
+                  command: cp -rH log/latest_build log/build
+                  when: always
+              - store_artifacts:
+                    path: << parameters.workspace >>/log/build
+    test_workspace:
+      description: "Test Workspace"
+      parameters:
+        workspace:
+          type: string
+        mixins:
+          type: string
+      steps:
+        - run:
+            name: Test Workspace | << parameters.workspace >>
+            working_directory: << parameters.workspace >>
+            command: |
+              . install/setup.sh
+              TEST_PACKAGES=$(
+                colcon list --names-only | \
+                  circleci tests split \
+                    --split-by=timings \
+                    --timings-type=classname \
+                    --show-counts | \
+                  xargs)
+              set -o xtrace
+              colcon test \
+                --packages-select ${TEST_PACKAGES} \
+                --mixin << parameters.mixins >>
+              colcon test-result \
+                --verbose
+        - run:
+            name: Copy Test Logs
+            working_directory: << parameters.workspace >>
+            command: cp -rH log/latest_test log/test
+            when: always
+        - store_artifacts:
+            path: << parameters.workspace >>/log/test
+        - run:
+            name: Copy Test Results
+            working_directory: << parameters.workspace >>
+            command: |
+              mkdir test_results/
+              cp -rH build/*/test_results/* test_results
+            when: always
+        - store_test_results:
+            path: << parameters.workspace >>/test_results
+        - store_artifacts:
+            path: << parameters.workspace >>/test_results
   pre_checkout: &pre_checkout
     run:
-        name: Pre Checkout
-        command: |
-          stat -c '%y' /opt/ros/$ROS_DISTRO/setup.sh | \
-            sha256sum | \
-            awk '{print "distro "$1}' > /opt/ros/$ROS_DISTRO/checksum.txt
-          find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
-            sort -k 2 | \
-            cut -d" " -f1 | \
-            sha256sum | \
-            awk '{print "package "$1}' > /tmp/package.txt
-          rm -rf $BBR_WS/*
+      name: Pre Checkout
+      command: |
+        mkdir -p $ROS_WS
+        ln -s /opt/ros/$ROS_DISTRO $ROS_WS/install
+        echo $CACHE_NONCE | \
+          (echo cache_nonce && cat) >> $ROS_WS/checksum.txt
+        sha256sum $ROS_WS/checksum.txt >> $ROS_WS/checksum.txt
+        TZ=utc stat -c '%y' /ros_entrypoint.sh | \
+          (echo ros_entrypoint && cat) >> $ROS_WS/checksum.txt
+        sha256sum $ROS_WS/checksum.txt >> $ROS_WS/checksum.txt
+        rm -rf $OVERLAY_WS/*
+  on_checkout: &on_checkout
+    checkout:
+      path: src/navigation2
   post_checkout: &post_checkout
     run:
-        name: Post Checkout
-        command: |
-          find $BBR_WS/src -not -iwholename '*.git/*' -name 'package.xml' -type f -exec sha256sum {} \; | \
-            sort -k 2 | \
-            cut -d" " -f1 | \
-            sha256sum | \
-            awk '{print "package "$1}' > $BBR_WS/package.txt
-  install_dependencies: &install_dependencies
-    run:
-        name: Install Dependencies
-        command: |
-          cat /opt/ros/$ROS_DISTRO/checksum.txt > $BBR_WS/checksum.txt
-          find $BBR_WS/src -not -iwholename '*.git/*' -type f -exec sha256sum {} \; | \
-            sort -k 2 | \
-            cut -d" " -f1 | \
-            sha256sum | \
-            awk '{print "source "$1}' >> $BBR_WS/checksum.txt
-          if ! cmp /tmp/package.txt $BBR_WS/package.txt 2>&1
-          then
-            echo "Install Dependencies"
-            apt-get update
-            dependencies=$(
-              rosdep install -q -y \
-                --from-paths \
-                  src \
-                --ignore-src \
-                --verbose | \
-              awk '$1 ~ /^resolution\:/' | \
-              awk -F'[][]' '{print $2}' | \
-              tr -d \, | xargs -n1 | sort -u | xargs)
-            dpkg -s $dependencies | \
-              sha256sum | \
-              awk '{print "dependencies "$1}' >> $BBR_WS/checksum.txt
-          fi
-  store_build_checksum: &store_build_checksum
-    store_artifacts:
-        path: checksum.txt
-  restore_build_cache: &restore_build_cache
-    restore_cache:
-      name: Restore Build Cache
-      key: build-cache-v1-{{ arch }}-{{ .Branch }}-{{ checksum "/opt/bbr_ws/checksum.txt" }}
-  source_build: &source_build
-    run:
-      name: Source Build
+      name: Post Checkout
       command: |
-        if [ -d install ]
-        then
-            echo "Skipping Source Build"
-        else
-            . /opt/ros/$ROS_DISTRO/setup.sh
-            colcon build \
-              --symlink-install \
-              --cmake-args \
-                --no-warn-unused-cli \
-                -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
-                -DCOVERAGE_ENABLED=$COVERAGE_ENABLED \
-                -DCMAKE_CXX_FLAGS="-Wno-unused-parameter"
-        fi
-  save_build_cache: &save_build_cache
-    save_cache:
-      name: Save Build Cache
-      key: build-cache-v1-{{ arch }}-{{ .Branch }}-{{ checksum "/opt/bbr_ws/checksum.txt" }}
-      paths:
-        - /opt/bbr_ws
-  copy_build_logs: &copy_build_logs
+        ls $OVERLAY_WS
+  restore_ccache: &restore_ccache
+    restore_from_cache:
+      key: ccache
+      workspace: /opt/overlay_ws
+  ccache_stats: &ccache_stats
     run:
-        name: Copy Build Logs
-        when: always
-        command: cp -rH log/latest_build log/build
-  store_build_logs: &store_build_logs
+      name: CCache Stats
+      command: |
+        ccache -s # show stats
+        ccache -z # zero stats
+        ccache -V # show version
+        ccache -p # show config
+  install_overlay_dependencies: &install_overlay_dependencies
+    install_dependencies:
+      underlay: /opt/ros_ws
+      workspace: /opt/overlay_ws
+  setup_overlay_workspace: &setup_overlay_workspace
+    setup_workspace: &setup_workspace_overlay
+      key: overlay_ws
+      underlay: /opt/ros_ws
+      workspace: /opt/overlay_ws
+      mixins: ${OVERLAY_MIXINS}
+  restore_overlay_workspace: &restore_overlay_workspace
+    setup_workspace:
+      <<: *setup_workspace_overlay
+      build: false
+  store_ccache_logs: &store_ccache_logs
     store_artifacts:
-        path: log/build
-  test_build: &test_build
-    run:
-        name: Test Build
-        command: |
-          colcon test
-  copy_test_logs: &copy_test_logs
-    run:
-        name: Copy Test Logs
-        when: always
-        command: cp -rH log/latest_test log/test
-  store_test_logs: &store_test_logs
-    store_artifacts:
-        path: log/test
-  report_code_coverage: &report_code_coverage
-    run:
-        name: Report Code Coverage
-        command: |
-          if [ "$COVERAGE_ENABLED" = "True" ]
-          then
-            . install/setup.sh
-            src/bbr_ros2/tools/code_coverage_report.bash codecovio
-          else
-            echo "Skipping Code Coverage Report"
-          fi
+        path: /tmp/ccache.log
+  save_ccache: &save_ccache
+    save_to_cache:
+      key: ccache
+      workspace: /opt/overlay_ws
+      path: ~/.ccache
+      when: always
+  test_overlay_workspace: &test_overlay_workspace
+    test_workspace:
+      workspace: /opt/overlay_ws
+      mixins: ${OVERLAY_MIXINS}
+  # collect_overlay_coverage: &collect_overlay_coverage
+  #   run:
+  #     name: Collect Code Coverage
+  #     working_directory: /opt/overlay_ws
+  #     command: src/navigation2/tools/code_coverage_report.bash ci
+  #     when: always
+  # upload_overlay_coverage: &upload_overlay_coverage
+  #   codecov/upload:
+  #     file: lcov/project_coverage.info
+  #     flags: project
+  #     when: always
 
 commands:
+  <<: *common_commands
   checkout_source:
     description: "Checkout Source"
     steps:
       - *pre_checkout
-      - checkout:
-          path: src/bbr_ros2
+      - *on_checkout
       - *post_checkout
-      - *post_checkout
+  setup_dependencies:
+    description: "Setup Dependencies"
+    steps:
+      - *install_overlay_dependencies
+      - *restore_ccache
   build_source:
     description: "Build Source"
     steps:
-      - *install_dependencies
-      - *store_build_checksum
-      - *restore_build_cache
-      - *source_build
-      - *save_build_cache
-      - *copy_build_logs
-      - *store_build_logs
-  test_source:
-    description: "Test Source"
+      - *ccache_stats
+      - *setup_overlay_workspace
+      - *store_ccache_logs
+      - *ccache_stats
+      - *save_ccache
+  restore_build:
+    description: "Restore Build"
     steps:
-      - *test_build
-      - *copy_test_logs
-      - *store_test_logs
-  report_coverage:
-    description: "Report Coverage"
+      - checkout_source
+      - *install_overlay_dependencies
+      - *restore_overlay_workspace
+  test_build:
+    description: "Test Build"
     steps:
-      - *report_code_coverage
+      - *test_overlay_workspace
+  # report_coverage:
+  #   description: "Report Coverage"
+  #   steps:
+  #     - *collect_overlay_coverage
+  #     - *upload_overlay_coverage
 
 executors:
-  docker_exec:
+  debug_exec:
     docker:
       - image: dledr/bbr_ros2:master
-    working_directory: /opt/bbr_ws
+    working_directory: /opt/overlay_ws
     environment:
-      # MAKEFLAGS: "-j 1 -l 1"
+      <<: *common_environment
+      CACHE_NONCE: "Debug"
+      OVERLAY_MIXINS: "debug ccache coverage-gcc"
+  release_exec:
+    docker:
+      - image: dledr/bbr_ros2:master
+    working_directory: /opt/overlay_ws
+    environment:
+      <<: *common_environment
+      CACHE_NONCE: "Release"
+      OVERLAY_MIXINS: "release ccache"
 
 jobs:
-  debug_build:
-    executor: docker_exec
-    environment:
-      CMAKE_BUILD_TYPE: "Debug"
-      COVERAGE_ENABLED: "True"
+  debug_build: &debug_build
+    executor: debug_exec
     steps:
       - checkout_source
+      - setup_dependencies
       - build_source
-      - test_source
-      # - report_coverage
   release_build:
-    executor: docker_exec
-    environment:
-      CMAKE_BUILD_TYPE: "Release"
-      COVERAGE_ENABLED: "False"
+    executor: release_exec
+    <<: *debug_build
+  debug_test:
+    executor: debug_exec
+    parallelism: 1
     steps:
-      - checkout_source
-      - build_source
-      - test_source
+      - restore_build
+      - test_build
+      # - report_coverage
+  release_test: &release_test
+    executor: release_exec
+    parallelism: 1
+    steps:
+      - restore_build
+      - test_build
 
 workflows:
   version: 2
-  build-test:
+  build_and_test: &build_and_test
     jobs:
       - debug_build
+      - debug_test:
+          requires:
+            - debug_build
       - release_build
-  # nightly:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 0 * * *"
-  #         filters:
-  #           branches:
-  #             only:
-  #               - master
-  #   jobs:
-  #     - build
+      - release_test:
+          requires:
+            - release_build
+  nightly:
+    <<: *build_and_test
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
