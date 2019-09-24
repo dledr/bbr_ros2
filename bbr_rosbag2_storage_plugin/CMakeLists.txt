@@ -21,19 +21,24 @@ bbr_package()
 add_library(${PROJECT_NAME} SHARED
   src/bbr_rosbag2_storage_plugin/bbr/bbr_helper.cpp
   src/bbr_rosbag2_storage_plugin/bbr/bbr_node.cpp
-  src/bbr_rosbag2_storage_plugin/bbr/bbr_storage.cpp)
+  src/bbr_rosbag2_storage_plugin/bbr/bbr_storage.cpp
+)
 
-ament_target_dependencies(${PROJECT_NAME}
+set(dependencies
   bbr_msgs
   bbr_protobuf
   pluginlib
-  Poco
+  poco_vendor
   rclcpp
   rcutils
   rosbag2_storage
   rosbag2_storage_default_plugins
-  SQLite3
+  sqlite3_vendor
   std_msgs
+)
+
+ament_target_dependencies(${PROJECT_NAME}
+  ${dependencies}
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -59,19 +64,19 @@ install(
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin)
 
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  set(ament_cmake_copyright_FOUND TRUE)
+  set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  # add_subdirectory(test)
+endif()
+
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(
-  bbr_msgs
-  Poco
-  poco_vendor
-  rclcpp
-  rcutils
-  rosbag2_storage
-  rosbag2_storage_default_plugins
-  SQLite3
-  sqlite3_vendor
-  std_msgs
-)
+ament_export_dependencies(${dependencies})
 
 ament_package()

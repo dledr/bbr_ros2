@@ -28,9 +28,9 @@
 #include "bbr_protobuf/proto/bbr/hash.pb.h"
 
 class SHA256Engine
-    : public Poco::Crypto::DigestEngine
+  : public Poco::Crypto::DigestEngine
 {
- public:
+public:
   enum
   {
     BLOCK_SIZE = 64,
@@ -38,7 +38,7 @@ class SHA256Engine
   };
 
   SHA256Engine()
-      : DigestEngine("SHA256")
+  : DigestEngine("SHA256")
   {}
 };
 
@@ -65,12 +65,12 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::createNonce()
 
 
 std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeTopicDigest(
-    std::shared_ptr<rcutils_uint8_array_t> nonce,
-    const rosbag2_storage::TopicMetadata &topic)
+  std::shared_ptr<rcutils_uint8_array_t> nonce,
+  const rosbag2_storage::TopicMetadata & topic)
 {
   std::string nonce_passphrase(
-      reinterpret_cast<char*>(nonce->buffer),
-      nonce->buffer_length);
+    reinterpret_cast<char *>(nonce->buffer),
+    nonce->buffer_length);
 
   std::string topic_format_str;
   auto topic_format = TopicFormat();
@@ -82,20 +82,20 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeTopicDigest(
   auto topic_digest = computeHMAC(nonce_passphrase, topic_format_istr);
 
   std::string topic_passphrase(
-      reinterpret_cast<char*>(topic_digest.data()),
-      topic_digest.size());
+    reinterpret_cast<char *>(topic_digest.data()),
+    topic_digest.size());
 
-  char* hash = reinterpret_cast<char*>(topic_digest.data());
+  char * hash = reinterpret_cast<char *>(topic_digest.data());
   return rosbag2_storage::make_serialized_message(hash, SHA256Engine::DIGEST_SIZE);
 }
 
 std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeTopicNonce(
-    std::shared_ptr<rcutils_uint8_array_t> nonce,
-    const rosbag2_storage::TopicMetadata &topic)
+  std::shared_ptr<rcutils_uint8_array_t> nonce,
+  const rosbag2_storage::TopicMetadata & topic)
 {
   std::string topic_passphrase(
-      reinterpret_cast<char*>(nonce->buffer),
-      nonce->buffer_length);
+    reinterpret_cast<char *>(nonce->buffer),
+    nonce->buffer_length);
 
   std::string topic_info_str;
   auto topic_info = TopicInfo();
@@ -105,18 +105,18 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeTopicNonce(
   std::istringstream topic_info_istr(topic_info_str);
   auto topic_nonce = computeHMAC(topic_passphrase, topic_info_istr);
 
-  char* hash = reinterpret_cast<char*>(topic_nonce.data());
+  char * hash = reinterpret_cast<char *>(topic_nonce.data());
   return rosbag2_storage::make_serialized_message(hash, SHA256Engine::DIGEST_SIZE);
 }
 
 
 std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeMessageDigest(
-    std::shared_ptr<rcutils_uint8_array_t> nonce,
-    std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
+  std::shared_ptr<rcutils_uint8_array_t> nonce,
+  std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message)
 {
   std::string message_passphrase(
-      reinterpret_cast<char*>(nonce->buffer),
-      nonce->buffer_length);
+    reinterpret_cast<char *>(nonce->buffer),
+    nonce->buffer_length);
 
   std::string message_info_str;
   auto message_info = MessageInfo();
@@ -124,20 +124,20 @@ std::shared_ptr<rcutils_uint8_array_t> BbrHelper::computeMessageDigest(
   message_info.SerializeToString(&message_info_str);
 
   std::string message_data_str(
-      reinterpret_cast<char*>(message->serialized_data->buffer),
-      message->serialized_data->buffer_length);
+    reinterpret_cast<char *>(message->serialized_data->buffer),
+    message->serialized_data->buffer_length);
 
   std::istringstream topic_info_istr(message_info_str);
   std::istringstream topic_data_istr(message_data_str);
   auto message_digest = computeHMAC(message_passphrase, topic_info_istr, topic_data_istr);
 
-  char* hash = reinterpret_cast<char*>(message_digest.data());
+  char * hash = reinterpret_cast<char *>(message_digest.data());
   return rosbag2_storage::make_serialized_message(hash, SHA256Engine::DIGEST_SIZE);
 }
 
 Poco::DigestEngine::Digest BbrHelper::computeHMAC(
-    std::string passphrase,
-    std::istringstream & istr)
+  std::string passphrase,
+  std::istringstream & istr)
 {
   //TODO: rework to allow utilize protobuf SerializeToOstream
   Poco::HMACEngine<SHA256Engine> hmac(passphrase);
@@ -148,9 +148,9 @@ Poco::DigestEngine::Digest BbrHelper::computeHMAC(
 }
 
 Poco::DigestEngine::Digest BbrHelper::computeHMAC(
-    std::string passphrase,
-    std::istringstream & istr1,
-    std::istringstream & istr2)
+  std::string passphrase,
+  std::istringstream & istr1,
+  std::istringstream & istr2)
 {
   //TODO: rework to allow utilize protobuf SerializeToOstream
   Poco::HMACEngine<SHA256Engine> hmac(passphrase);

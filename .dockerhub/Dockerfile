@@ -1,40 +1,57 @@
-FROM ros:dashing
+ARG FROM_IMAGE=ros:dashing
 
-# copy all package.xml
-ENV BBR_WS /opt/bbr_ws
-RUN mkdir -p $BBR_WS/src
-WORKDIR $BBR_WS/src/bbr_ros2
-COPY ./bbr_common/package.xml bbr_common/
-COPY ./bbr_msgs/package.xml bbr_msgs/
-COPY ./bbr_rosbag2_storage_plugin/package.xml bbr_rosbag2_storage_plugin/
-COPY ./bbr_sawtooth_bridge/package.xml bbr_sawtooth_bridge/
-COPY ./bbr_protobuf/package.xml bbr_protobuf/
+# multi-stage for caching
+FROM $FROM_IMAGE AS cache
 
-# install package dependencies
-WORKDIR $BBR_WS
-RUN apt-get update && apt-get install -y \
-      ros-$ROS_DISTRO-ros2bag && \
-    rosdep update && \
-    rosdep install -q -y \
-      --from-paths \
-        src \
+# copy overlay source
+ENV OVERLAY_WS /opt/overlay_ws
+RUN mkdir -p $OVERLAY_WS/src
+WORKDIR $OVERLAY_WS
+COPY ./ src/bbr_ros2
+
+# copy manifests for caching
+WORKDIR /opt
+RUN find ./ -name "package.xml" | \
+      xargs cp --parents -t /tmp
+
+# multi-stage for building
+FROM $FROM_IMAGE AS build
+
+# install CI dependencies	
+RUN apt-get update && \
+    apt-get install -q -y \	
+      ccache \
+      lcov \
+      ros-$ROS_DISTRO-ros2bag \
+    && rm -rf /var/lib/apt/lists/*
+
+# copy overlay manifests
+ENV OVERLAY_WS /opt/overlay_ws
+COPY --from=cache /tmp/overlay_ws $OVERLAY_WS
+WORKDIR $OVERLAY_WS
+
+# install overlay dependencies
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
+    apt-get update && rosdep install -q -y \
+      --from-paths src \
       --ignore-src \
     && rm -rf /var/lib/apt/lists/*
 
-# copy repo packages
-COPY ./ src/bbr_ros2/
+# copy overlay source
+COPY --from=cache $OVERLAY_WS ./
 
-# build package source
-ARG CMAKE_BUILD_TYPE=Release
+# build overlay source
+ARG OVERLAY_MIXINS="release ccache"
 RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build \
       --symlink-install \
+      --mixin \
+        $OVERLAY_MIXINS \
       --cmake-args \
         --no-warn-unused-cli \
-        -DCMAKE_BUILD_TYPE=$CMAKE_BUILD_TYPE \
         -DCMAKE_CXX_FLAGS="-Wno-unused-parameter"
 
-# source workspace from entrypoint
-RUN sed --in-place --expression \
-      '$isource "$BBR_WS/install/setup.bash"' \
+# source overlay from entrypoint
+RUN sed --in-place \
+      's|^source .*|source "$OVERLAY_WS/install/setup.bash"|' \
       /ros_entrypoint.sh

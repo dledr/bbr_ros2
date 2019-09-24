@@ -37,22 +37,22 @@ namespace rosbag2_storage_plugins
 {
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrNode
-    : public rclcpp::Node
+  : public rclcpp::Node
 {
- public:
+public:
   explicit BbrNode(const std::string & node_name);
   ~BbrNode() override = default;
 
   void create_record(
-      std::shared_ptr<rcutils_uint8_array_t> nonce,
-      const rosbag2_storage::TopicMetadata & topic);
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    const rosbag2_storage::TopicMetadata & topic);
 
   void publish_checkpoint(
-      std::shared_ptr<rcutils_uint8_array_t> nonce,
-      std::shared_ptr<rcutils_uint8_array_t> hash,
-      std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    std::shared_ptr<rcutils_uint8_array_t> hash,
+    std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
- private:
+private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<bbr_msgs::msg::CheckpointArray>::SharedPtr checkpoints_publisher_;
   rclcpp::Client<bbr_msgs::srv::CreateRecords>::SharedPtr records_client_;
