@@ -29,30 +29,29 @@ const std::string DIGEST_ENGINE_NAME = "SHA256";
 
 class ROSBAG2_STORAGE_DEFAULT_PLUGINS_PUBLIC BbrHelper
 {
- public:
+public:
   BbrHelper();
 
   std::shared_ptr<rcutils_uint8_array_t> createNonce();
 
   std::shared_ptr<rcutils_uint8_array_t> computeTopicDigest(
-      std::shared_ptr<rcutils_uint8_array_t> nonce,
-      const rosbag2_storage::TopicMetadata &topic);
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    const rosbag2_storage::TopicMetadata & topic);
 
   std::shared_ptr<rcutils_uint8_array_t> computeTopicNonce(
-      std::shared_ptr<rcutils_uint8_array_t> nonce,
-      const rosbag2_storage::TopicMetadata &topic);
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    const rosbag2_storage::TopicMetadata & topic);
 
   std::shared_ptr<rcutils_uint8_array_t> computeMessageDigest(
-      std::shared_ptr<rcutils_uint8_array_t> nonce,
-      std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
+    std::shared_ptr<rcutils_uint8_array_t> nonce,
+    std::shared_ptr<const rosbag2_storage::SerializedBagMessage> message);
 
- private:
+private:
+  Poco::DigestEngine::Digest computeHMAC(
+    std::string passphrase,
+    std::istringstream & istr);
 
   Poco::DigestEngine::Digest computeHMAC(
-      std::string passphrase,
-      std::istringstream & istr);
-
-Poco::DigestEngine::Digest computeHMAC(
     std::string passphrase,
     std::istringstream & istr1,
     std::istringstream & istr2);

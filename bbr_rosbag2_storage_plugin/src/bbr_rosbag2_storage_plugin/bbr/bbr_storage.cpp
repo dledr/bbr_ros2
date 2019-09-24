@@ -104,7 +104,8 @@ void BbrStorage::write(std::shared_ptr<const rosbag2_storage::SerializedBagMessa
   }
 
   topic_entry->second.digest = helper_->computeMessageDigest(topic_entry->second.digest, message);
-  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data, topic_entry->second.digest);
+  write_statement_->bind(message->time_stamp, topic_entry->second.id, message->serialized_data,
+    topic_entry->second.digest);
   write_statement_->execute_and_reset();
   node_->publish_checkpoint(topic_entry->second.nonce, topic_entry->second.digest, message);
 }
@@ -167,7 +168,7 @@ void BbrStorage::create_topic(const rosbag2_storage::TopicMetadata & topic)
 {
   if (topics_.find(topic.name) == std::end(topics_)) {
     auto insert_topic = database_->prepare_statement(
-        "INSERT INTO topics (name, type, serialization_format, bbr_nonce, bbr_digest) VALUES (?, ?, ?, ?, ?)");
+      "INSERT INTO topics (name, type, serialization_format, bbr_nonce, bbr_digest) VALUES (?, ?, ?, ?, ?)");
 
     auto bbr_nonce = nonce_;
     auto bbr_digest = helper_->computeTopicDigest(bbr_nonce, topic);
