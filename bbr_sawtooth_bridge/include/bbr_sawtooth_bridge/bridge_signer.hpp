@@ -23,22 +23,22 @@
 namespace bbr_sawtooth_bridge
 {
 
-std::string encodeToHex(const std::string& str);
-std::string decodeFromHex(const std::string& str);
+std::string encodeToHex(const std::string & str);
+std::string decodeFromHex(const std::string & str);
 
 class Signer
 {
- public:
+public:
   Signer(const std::string & privkey_str);
 
-  std::string sign(const std::string& message);
-  std::string _sign(const std::vector<unsigned char>& digest);
+  std::string sign(const std::string & message);
+  std::string _sign(const std::vector<unsigned char> & digest);
 
   std::string privkey;
   std::string pubkey;
   std::string pubkey_str;
 
-  secp256k1_context const* context_;
+  secp256k1_context const * context_;
 };
 
 }  // namespace bbr_sawtooth_bridge
