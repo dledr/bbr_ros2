@@ -16,11 +16,11 @@ set(msg_files
     "msg/RecordArray.msg")
 set(srv_files "srv/CreateRecords.srv")
 rosidl_generate_interfaces(${PROJECT_NAME}
-                           ${msg_files}
-                           ${srv_files}
-                           DEPENDENCIES
-                           builtin_interfaces
-                           std_msgs)
+                        ${msg_files}
+                        ${srv_files}
+                        DEPENDENCIES
+                        builtin_interfaces
+                        std_msgs)
 
 ament_export_dependencies(rosidl_default_runtime)
 

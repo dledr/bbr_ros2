@@ -12,9 +12,9 @@ set(ALL_PROTO_SRCS)
 set(ALL_PROTO_HDRS)
 foreach(ABS_FIL ${ALL_PROTOS})
   file(RELATIVE_PATH
-       REL_FIL
-       ${PROJECT_SOURCE_DIR}
-       ${ABS_FIL})
+      REL_FIL
+      ${PROJECT_SOURCE_DIR}
+      ${ABS_FIL})
   get_filename_component(DIR ${REL_FIL} DIRECTORY)
   get_filename_component(FIL_WE ${REL_FIL} NAME_WE)
 
@@ -24,7 +24,7 @@ foreach(ABS_FIL ${ALL_PROTOS})
 
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.cc"
-           "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
+          "${PROJECT_BINARY_DIR}/${DIR}/${FIL_WE}.pb.h"
     COMMAND "${PROTOBUF_PROTOC_EXECUTABLE}"
             ARGS
             --cpp_out
@@ -58,9 +58,9 @@ install(TARGETS ${library_name}
 
 foreach(HDR ${ALL_PROTO_HDRS})
   file(RELATIVE_PATH
-       REL_FIL
-       ${PROJECT_BINARY_DIR}
-       ${HDR})
+      REL_FIL
+      ${PROJECT_BINARY_DIR}
+      ${HDR})
   get_filename_component(DIR ${REL_FIL} DIRECTORY)
   install(FILES ${HDR} DESTINATION include/${PROJECT_NAME}/${DIR})
 endforeach()
