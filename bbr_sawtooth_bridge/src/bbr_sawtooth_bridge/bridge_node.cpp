@@ -40,9 +40,9 @@ namespace bbr_sawtooth_bridge
 {
 
 Bridge::Bridge(
-    const std::string & node_name,
-    const std::string & signer_key_path,
-    const std::string & batcher_key_path)
+  const std::string & node_name,
+  const std::string & signer_key_path,
+  const std::string & batcher_key_path)
 : rclcpp::Node(node_name),
   batcher_(),
   signer_(),
@@ -58,9 +58,9 @@ Bridge::Bridge(
   try {
     this->socket_.connect(zmq_url.c_str());
     RCLCPP_INFO(
-        this->get_logger(),
-        "Connection to validator succeeded");
-  } catch(std::exception& e) {
+      this->get_logger(),
+      "Connection to validator succeeded");
+  } catch (std::exception & e) {
     RCLCPP_ERROR(this->get_logger(), "Connection to validator failed: %s", e.what());
     throw;
   }
@@ -90,7 +90,7 @@ void Bridge::create_records_callback(
 }
 
 std::string Bridge::path_to_key(
-    std::string key_path)
+  std::string key_path)
 {
   std::ifstream key_file(key_path);
 
@@ -108,7 +108,7 @@ std::string Bridge::path_to_key(
 }
 
 void Bridge::checkpoints_callback(
-    const bbr_msgs::msg::CheckpointArray::SharedPtr msg)
+  const bbr_msgs::msg::CheckpointArray::SharedPtr msg)
 {
   auto checkpoint = msg->checkpoints[0];
   RCLCPP_INFO(
@@ -141,7 +141,7 @@ void Bridge::checkpoints_callback(
   deigest_engine_->update(txn_payload);
   auto digest = deigest_engine_->digest();
   txn_header.set_payload_sha512(
-      Poco::DigestEngine::digestToHex(digest));
+    Poco::DigestEngine::digestToHex(digest));
 
 
   BatchList batch_list;

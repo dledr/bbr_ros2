@@ -26,11 +26,11 @@
 #include "Poco/StreamCopier.h"
 
 
-secp256k1_context const* getCtx()
+secp256k1_context const * getCtx()
 {
   static std::unique_ptr<secp256k1_context, decltype(&secp256k1_context_destroy)> s_ctx{
-      secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY),
-      &secp256k1_context_destroy
+    secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY),
+    &secp256k1_context_destroy
   };
   return s_ctx.get();
 }
@@ -39,28 +39,31 @@ namespace bbr_sawtooth_bridge
 {
 
 
-Signer::Signer(const std::string & privkey_str) {
+Signer::Signer(const std::string & privkey_str)
+{
   context_ = getCtx();
   privkey = privkey_str;
 
-  const unsigned char *privkey_ptr = (unsigned char*) privkey.c_str();
+  const unsigned char * privkey_ptr = (unsigned char *) privkey.c_str();
   std::unique_ptr<secp256k1_pubkey> pubkey_ptr(new secp256k1_pubkey);
   [[maybe_unused]] int pubkey_created = secp256k1_ec_pubkey_create(
-      context_, pubkey_ptr.get(), privkey_ptr);
+    context_, pubkey_ptr.get(), privkey_ptr);
   assert(pubkey_created == 1);
 
 
   std::array<uint8_t, 33> pubkey_bytes;
   size_t serializedPubkeySize = pubkey_bytes.size();
   [[maybe_unused]] int pubkey_serialize = secp256k1_ec_pubkey_serialize(
-      context_, pubkey_bytes.data(), &serializedPubkeySize, pubkey_ptr.get(), SECP256K1_EC_COMPRESSED);
+    context_, pubkey_bytes.data(), &serializedPubkeySize, pubkey_ptr.get(),
+    SECP256K1_EC_COMPRESSED);
   assert(pubkey_serialize == 1);
-  pubkey = std::string((char*) pubkey_bytes.data());
+  pubkey = std::string((char *) pubkey_bytes.data());
   pubkey_str = encodeToHex(pubkey);
 }
 
 
-std::string Signer::sign(const std::string& message){
+std::string Signer::sign(const std::string & message)
+{
 
   std::istringstream source(message);
   Poco::Crypto::DigestEngine sha256("SHA256");
@@ -79,27 +82,28 @@ std::string Signer::sign(const std::string& message){
 
 }
 
-std::string Signer::_sign(const std::vector<unsigned char>& digest){
+std::string Signer::_sign(const std::vector<unsigned char> & digest)
+{
 
   std::unique_ptr<secp256k1_ecdsa_signature> raw_sig(new secp256k1_ecdsa_signature);
-  const unsigned char *msg32 = digest.data();
+  const unsigned char * msg32 = digest.data();
   secp256k1_nonce_function nonce_fn = NULL;
-  const void *nonce_data = NULL;
+  const void * nonce_data = NULL;
 
-  const unsigned char *privkey_ptr = (unsigned char*) privkey.c_str();
+  const unsigned char * privkey_ptr = (unsigned char *) privkey.c_str();
   secp256k1_ecdsa_sign(
-      context_, raw_sig.get(), msg32, privkey_ptr, nonce_fn, nonce_data);
+    context_, raw_sig.get(), msg32, privkey_ptr, nonce_fn, nonce_data);
 
   std::array<uint8_t, 64> output64;
   secp256k1_ecdsa_signature_serialize_compact(
-      context_, output64.data(), raw_sig.get());
+    context_, output64.data(), raw_sig.get());
   std::string signature((char *)output64.data(), output64.size());
 
   return signature;
 
 }
 
-std::string encodeToHex(const std::string& str)
+std::string encodeToHex(const std::string & str)
 {
   std::istringstream source(str);
   std::ostringstream sink;
@@ -111,7 +115,7 @@ std::string encodeToHex(const std::string& str)
   return sink.str();
 }
 
-std::string decodeFromHex(const std::string& str)
+std::string decodeFromHex(const std::string & str)
 {
   std::istringstream source(str);
   std::ostringstream sink;

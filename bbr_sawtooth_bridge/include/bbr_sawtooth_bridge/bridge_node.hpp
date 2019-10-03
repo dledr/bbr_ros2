@@ -36,24 +36,23 @@ namespace bbr_sawtooth_bridge
 {
 
 class Bridge
-    : public rclcpp::Node
+  : public rclcpp::Node
 {
- public:
+public:
   explicit Bridge(
-      const std::string & node_name,
-      const std::string & signer_key_path,
-      const std::string & batcher_key_path);
+    const std::string & node_name,
+    const std::string & signer_key_path,
+    const std::string & batcher_key_path);
   ~Bridge() override = default;
 
- private:
-
+private:
   void checkpoints_callback(
-      const bbr_msgs::msg::CheckpointArray::SharedPtr msg);
+    const bbr_msgs::msg::CheckpointArray::SharedPtr msg);
 
   void create_records_callback(
-      const std::shared_ptr<rmw_request_id_t> request_header,
-      const std::shared_ptr<bbr_msgs::srv::CreateRecords::Request> request,
-      const std::shared_ptr<bbr_msgs::srv::CreateRecords::Response> response);
+    const std::shared_ptr<rmw_request_id_t> request_header,
+    const std::shared_ptr<bbr_msgs::srv::CreateRecords::Request> request,
+    const std::shared_ptr<bbr_msgs::srv::CreateRecords::Response> response);
 
   std::string path_to_key(std::string key_path);
 
