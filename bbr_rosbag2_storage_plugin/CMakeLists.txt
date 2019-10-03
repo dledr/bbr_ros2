@@ -12,57 +12,49 @@ find_package(rclcpp REQUIRED)
 find_package(rcutils REQUIRED)
 find_package(rosbag2_storage REQUIRED)
 find_package(rosbag2_storage_default_plugins REQUIRED)
-find_package(SQLite3 REQUIRED)  # provided by sqlite3_vendor
+find_package(SQLite3 REQUIRED) # provided by sqlite3_vendor
 find_package(sqlite3_vendor REQUIRED)
 find_package(std_msgs REQUIRED)
 
 bbr_package()
 
 add_library(${PROJECT_NAME} SHARED
-  src/bbr_rosbag2_storage_plugin/bbr/bbr_helper.cpp
-  src/bbr_rosbag2_storage_plugin/bbr/bbr_node.cpp
-  src/bbr_rosbag2_storage_plugin/bbr/bbr_storage.cpp
-)
+            src/bbr_rosbag2_storage_plugin/bbr/bbr_helper.cpp
+            src/bbr_rosbag2_storage_plugin/bbr/bbr_node.cpp
+            src/bbr_rosbag2_storage_plugin/bbr/bbr_storage.cpp)
 
 set(dependencies
-  bbr_msgs
-  bbr_protobuf
-  pluginlib
-  poco_vendor
-  rclcpp
-  rcutils
-  rosbag2_storage
-  rosbag2_storage_default_plugins
-  sqlite3_vendor
-  std_msgs
-)
+    bbr_msgs
+    bbr_protobuf
+    pluginlib
+    poco_vendor
+    rclcpp
+    rcutils
+    rosbag2_storage
+    rosbag2_storage_default_plugins
+    sqlite3_vendor
+    std_msgs)
 
-ament_target_dependencies(${PROJECT_NAME}
-  ${dependencies}
-)
+ament_target_dependencies(${PROJECT_NAME} ${dependencies})
 
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
+target_include_directories(
+  ${PROJECT_NAME}
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include>)
 
-# Causes the visibility macros to use dllexport rather than dllimport,
-# which is appropriate when building the dll but not consuming it.
+# Causes the visibility macros to use dllexport rather than dllimport, which is
+# appropriate when building the dll but not consuming it.
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-ROSBAG2_STORAGE_DEFAULT_PLUGINS_BUILDING_DLL)
+                           ROSBAG2_STORAGE_DEFAULT_PLUGINS_BUILDING_DLL)
 
 pluginlib_export_plugin_description_file(rosbag2_storage plugin_description.xml)
 
-install(
-  DIRECTORY include/
-  DESTINATION include)
+install(DIRECTORY include/ DESTINATION include)
 
-install(
-  TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
+install(TARGETS ${PROJECT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
