@@ -23,7 +23,12 @@ enum Command {
     /// Bagfile subcommand
     Bag(Bag),
 
-    /// Completions for bbr
+    #[structopt(
+        name = "completions",
+        about = "Completions for bbr",
+        usage = "Examples:
+        $ source <(bbr completions bash)
+        $ bbr completions fish | source")]
     Completions(Completions),
 }
 
