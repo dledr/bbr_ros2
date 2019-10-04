@@ -1,0 +1,99 @@
+use std::path::PathBuf;
+use std::io;
+use structopt::{clap::{Shell}, StructOpt};
+
+#[derive(Debug, StructOpt)]
+#[structopt(name = "bbr",
+    about = "A command line interface for bbr")]
+struct Opt {
+    #[structopt(subcommand)]
+    cmd: Option<Command>,
+
+    // /// enable debug mode
+    // #[structopt(short, long)]
+    // debug: bool,
+
+    /// Enable verbose output
+    #[structopt(short, long)]
+    verbose: bool,
+}
+
+#[derive(Debug, StructOpt)]
+enum Command {
+    /// Bagfile subcommand
+    Bag(Bag),
+
+    /// Completions for bbr
+    Completions(Completions),
+}
+
+#[derive(Debug, StructOpt)]
+enum Bag {
+    /// Checks bagfile validity and authenticity
+    Check(Check),
+
+    /// Converts bagfile to bbr format
+    Convert(Convert),
+
+    /// Finalizes bagfile by ending all records
+    Finalize(Finalize),
+}
+
+#[derive(Debug, StructOpt)]
+struct Check {
+
+    /// Input file
+    #[structopt(parse(from_os_str))]
+    input: PathBuf,
+
+    // Degree of parallelism
+    #[structopt(short, long, default_value = "1")]
+    parallelism: u32,
+}
+
+#[derive(Debug, StructOpt)]
+struct Convert {
+
+    /// Input file
+    #[structopt(parse(from_os_str))]
+    input: PathBuf,
+
+    /// Output file
+    #[structopt(parse(from_os_str))]
+    output: PathBuf,
+}
+
+#[derive(Debug, StructOpt)]
+struct Finalize {
+
+    /// Input file
+    #[structopt(parse(from_os_str))]
+    input: PathBuf,
+}
+
+#[derive(Debug, StructOpt)]
+struct Completions {
+
+    /// The shell to generate the script for
+    shell: Shell,
+}
+
+fn main() {
+
+    // Testing subcommands
+    let matches = Opt::clap().get_matches();
+    match matches.subcommand() {
+        ("completions", Some(sub_matches)) => {
+            let shell = sub_matches.value_of("shell").unwrap();
+            Opt::clap().gen_completions_to(
+                "bbr",
+                shell.parse::<Shell>().unwrap(),
+                &mut io::stdout()
+            );
+        },
+        _ => (),
+    }
+
+    // let opt = Opt::from_args();
+    // println!("{:?}", opt);
+}
