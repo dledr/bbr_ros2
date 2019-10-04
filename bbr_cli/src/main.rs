@@ -80,18 +80,15 @@ struct Completions {
 
 fn main() {
 
-    // Testing subcommands
+    // Check completions subcommand
     let matches = Opt::clap().get_matches();
-    match matches.subcommand() {
-        ("completions", Some(sub_matches)) => {
-            let shell = sub_matches.value_of("shell").unwrap();
-            Opt::clap().gen_completions_to(
-                "bbr",
-                shell.parse::<Shell>().unwrap(),
-                &mut io::stdout()
-            );
-        },
-        _ => (),
+    if let ("completions", Some(sub_matches)) = matches.subcommand() {
+    let shell = sub_matches.value_of("shell").unwrap();
+    Opt::clap().gen_completions_to(
+        "bbr",
+        shell.parse::<Shell>().unwrap(),
+        &mut std::io::stdout());
+    std::process::exit(0);
     }
 
     // let opt = Opt::from_args();
