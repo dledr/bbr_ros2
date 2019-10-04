@@ -43,7 +43,7 @@ enum Bag {
 struct Check {
 
     /// Input file
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long)]
     input: PathBuf,
 
     // Degree of parallelism
@@ -55,11 +55,11 @@ struct Check {
 struct Convert {
 
     /// Input file
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long)]
     input: PathBuf,
 
     /// Output file
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long)]
     output: PathBuf,
 }
 
@@ -67,7 +67,7 @@ struct Convert {
 struct Finalize {
 
     /// Input file
-    #[structopt(parse(from_os_str))]
+    #[structopt(short, long)]
     input: PathBuf,
 }
 
