@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use std::io;
 use structopt::{clap::{Shell}, StructOpt};
 
 #[derive(Debug, StructOpt)]
@@ -96,6 +95,6 @@ fn main() {
     std::process::exit(0);
     }
 
-    // let opt = Opt::from_args();
-    // println!("{:?}", opt);
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
 }
