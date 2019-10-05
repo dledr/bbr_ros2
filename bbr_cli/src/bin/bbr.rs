@@ -1,15 +1,12 @@
-mod cli;
-
-use cli::param;
+use bbr_cli::{cli};
 // use exitfailure::ExitFailure;
 // use failure::ResultExt;
 
-use structopt::{StructOpt};
 use rusqlite::{Result};
 
 fn main() -> Result<()> {
-    let opt = param::Opt::from_args();
+    let opt = cli::Opt::from_args();
     // println!("{:?}", opt);
-    param::Opt::handle(opt)?;
+    cli::Opt::handle(opt)?;
     Ok(())
 }

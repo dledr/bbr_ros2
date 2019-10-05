@@ -11,7 +11,3 @@ rusqlite = "0.20.0"
 structopt = "0.3.2"
 failure = "0.1.5"
 exitfailure = "0.5.1"
-
-[[bin]]
-name = "bbr"
-path = "src/main.rs"
