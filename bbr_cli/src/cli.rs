@@ -1,14 +1,34 @@
+use bbr_cli;
+
 pub mod param {
     use std::path::PathBuf;
-    use structopt::{clap::{ArgMatches, Shell}, StructOpt};
+    use structopt::{clap::{Shell}, StructOpt};
 
     extern crate rusqlite;
     use rusqlite::{Connection, Result};
-    use rusqlite::NO_PARAMS;
+    // use rusqlite::NO_PARAMS;
 
     impl Opt {
         pub fn from_args() -> Opt { <Opt as StructOpt>::from_args() }
-        // pub fn get_matches() -> Opt { <Opt as StructOpt>::get_matches() }
+
+        pub fn handle(opt: Opt) -> Result<()> {
+            let opt = Opt::from_args();
+            // println!("{:?}", opt);
+
+            match opt.cmd.unwrap() {
+                Command::Bag(bag) => {
+                    Bag::handle(bag)?;
+                }
+                Command::Completions(completions) => {
+                    Completions::handle(completions);
+                }
+                _ => {
+                    println!("This subcommand is not yet implemented.");
+                }
+            }
+
+            Ok(())
+        }
     }
 
     #[derive(Debug, StructOpt)]
@@ -53,6 +73,20 @@ pub mod param {
         Finalize(Finalize),
     }
 
+    impl Bag { 
+        pub fn handle(opt: Bag) -> Result<()> {
+            match opt {
+                Bag::Convert { 0: convert_opt} => {
+                    bbr_cli::convert(convert_opt.input)?
+                }
+                _ => {
+                    println!("This subcommand is not yet implemented.");
+                }
+            }
+            Ok(())
+        }
+    }
+
     #[derive(Debug, StructOpt)]
     pub struct Check {
 
@@ -88,42 +122,13 @@ pub mod param {
         pub shell: Shell,
     }
 
-    pub fn convert(opt: Convert) -> Result<()> {
-        let mut conn = Connection::open(opt.input)?;
-        let tx = conn.transaction()?;
-
-        tx.execute("
-            ALTER TABLE topics ADD COLUMN
-                bbr_nonce BLOB NOT NULL DEFAULT 0;",
-            NO_PARAMS)?;
-        tx.execute("
-            ALTER TABLE topics ADD COLUMN
-                bbr_digest BLOB NOT NULL DEFAULT 0;",
-            NO_PARAMS)?;
-        tx.execute("
-            ALTER TABLE messages ADD COLUMN
-                bbr_digest BLOB NOT NULL DEFAULT 0;",
-            NO_PARAMS)?;
-        tx.commit()
-    }
-
-    pub fn bag(opt: Bag) -> Result<()> {
-        match opt {
-            Bag::Convert { 0: convert_opt} => {
-                convert(convert_opt)?
-            }
-            _ => {
-                println!("This subcommand is not yet implemented.");
-            }
+    impl Completions { 
+        pub fn handle(opt: Completions) {
+            Opt::clap().gen_completions_to(
+                "bbr",
+                opt.shell,
+                &mut std::io::stdout());
+            std::process::exit(0)
         }
-        Ok(())
-    }
-
-    pub fn completions(opt: Completions) {
-        Opt::clap().gen_completions_to(
-            "bbr",
-            opt.shell,
-            &mut std::io::stdout());
-        std::process::exit(0)
     }
 }

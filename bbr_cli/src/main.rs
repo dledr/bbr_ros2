@@ -5,29 +5,11 @@ use cli::param;
 // use failure::ResultExt;
 
 use structopt::{StructOpt};
-
-extern crate rusqlite;
-
-use rusqlite::{Connection, Result};
-use rusqlite::NO_PARAMS;
+use rusqlite::{Result};
 
 fn main() -> Result<()> {
     let opt = param::Opt::from_args();
-    println!("{:?}", opt);
-
-    let cmd = opt.cmd.unwrap();
-
-    match cmd {
-        param::Command::Bag(bag) => {
-            param::bag(bag);
-        }
-        param::Command::Completions(completions) => {
-            param::completions(completions);
-        }
-        _ => {
-            println!("This subcommand is not yet implemented.");
-        }
-    }
-
+    // println!("{:?}", opt);
+    param::Opt::handle(opt)?;
     Ok(())
 }
