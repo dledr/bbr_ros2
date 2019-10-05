@@ -1,9 +1,14 @@
 pub mod param {
     use std::path::PathBuf;
-    use structopt::{clap::{Shell}, StructOpt};
+    use structopt::{clap::{ArgMatches, Shell}, StructOpt};
+
+    extern crate rusqlite;
+    use rusqlite::{Connection, Result};
+    use rusqlite::NO_PARAMS;
 
     impl Opt {
         pub fn from_args() -> Opt { <Opt as StructOpt>::from_args() }
+        // pub fn get_matches() -> Opt { <Opt as StructOpt>::get_matches() }
     }
 
     #[derive(Debug, StructOpt)]
@@ -11,7 +16,7 @@ pub mod param {
         about = "A command line interface for bbr")]
     pub struct Opt {
         #[structopt(subcommand)]
-        cmd: Option<Command>,
+        pub cmd: Option<Command>,
 
         // /// enable debug mode
         // #[structopt(short, long)]
@@ -23,7 +28,7 @@ pub mod param {
     }
 
     #[derive(Debug, StructOpt)]
-    enum Command {
+    pub enum Command {
         /// Bagfile subcommand
         Bag(Bag),
 
@@ -37,7 +42,7 @@ pub mod param {
     }
 
     #[derive(Debug, StructOpt)]
-    enum Bag {
+    pub enum Bag {
         /// Checks bagfile validity and authenticity
         Check(Check),
 
@@ -49,7 +54,7 @@ pub mod param {
     }
 
     #[derive(Debug, StructOpt)]
-    struct Check {
+    pub struct Check {
 
         /// Input file
         #[structopt(short, long)]
@@ -61,19 +66,15 @@ pub mod param {
     }
 
     #[derive(Debug, StructOpt)]
-    struct Convert {
+    pub struct Convert {
 
         /// Input file
         #[structopt(short, long)]
-        input: PathBuf,
-
-        /// Output file
-        #[structopt(short, long)]
-        output: PathBuf,
+        pub input: PathBuf,
     }
 
     #[derive(Debug, StructOpt)]
-    struct Finalize {
+    pub struct Finalize {
 
         /// Input file
         #[structopt(short, long)]
@@ -81,23 +82,48 @@ pub mod param {
     }
 
     #[derive(Debug, StructOpt)]
-    struct Completions {
+    pub struct Completions {
 
         /// The shell to generate the script for
-        shell: Shell,
+        pub shell: Shell,
     }
 
-    pub fn completions() {
+    pub fn convert(opt: Convert) -> Result<()> {
+        let mut conn = Connection::open(opt.input)?;
+        let tx = conn.transaction()?;
 
-        // Check completions subcommand
-        let matches = Opt::clap().get_matches();
-        if let ("completions", Some(sub_matches)) = matches.subcommand() {
-        let shell = sub_matches.value_of("shell").unwrap();
+        tx.execute("
+            ALTER TABLE topics ADD COLUMN
+                bbr_nonce BLOB NOT NULL DEFAULT 0;",
+            NO_PARAMS)?;
+        tx.execute("
+            ALTER TABLE topics ADD COLUMN
+                bbr_digest BLOB NOT NULL DEFAULT 0;",
+            NO_PARAMS)?;
+        tx.execute("
+            ALTER TABLE messages ADD COLUMN
+                bbr_digest BLOB NOT NULL DEFAULT 0;",
+            NO_PARAMS)?;
+        tx.commit()
+    }
+
+    pub fn bag(opt: Bag) -> Result<()> {
+        match opt {
+            Bag::Convert { 0: convert_opt} => {
+                convert(convert_opt)?
+            }
+            _ => {
+                println!("This subcommand is not yet implemented.");
+            }
+        }
+        Ok(())
+    }
+
+    pub fn completions(opt: Completions) {
         Opt::clap().gen_completions_to(
             "bbr",
-            shell.parse::<Shell>().unwrap(),
+            opt.shell,
             &mut std::io::stdout());
-        std::process::exit(0);
-        }
+        std::process::exit(0)
     }
 }
