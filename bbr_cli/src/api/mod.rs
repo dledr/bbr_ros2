@@ -132,7 +132,6 @@ pub fn convert(input: PathBuf) -> Result<()> {
 
     let mut hmac_key = HMACSHA256::clone_key_from_slice(
         meta.bbr_digest.unwrap().as_slice());
-    // let mut hmac_key = HMACSHA256::generate_key();
     for topic_result in topics_iter {
         let mut topic = topic_result.unwrap();
         let tag = HMACSHA256::create_tag(
@@ -146,7 +145,7 @@ pub fn convert(input: PathBuf) -> Result<()> {
                 bbr_nonce = (?1),
                 bbr_digest = (?2)
             WHERE id = (?3)",
-        params![topic.bbr_nonce, topic.bbr_digest, topic.id],
+            params![topic.bbr_nonce, topic.bbr_digest, topic.id],
         )?;
         hmac_key = HMACSHA256::clone_key_from_slice(&tag);
     }
