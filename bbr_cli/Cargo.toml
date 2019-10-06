@@ -13,3 +13,8 @@ failure = "0.1.5"
 exitfailure = "0.5.1"
 sodiumoxide = "0.2.4"
 chrono = "0.4.9"
+protobuf = "2.8.1"
+
+[build-dependencies]
+protoc-rust = "2.8.1"
+glob = "0.3.0"
