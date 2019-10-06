@@ -12,14 +12,17 @@ use rusqlite::{params, Connection, Result};
 mod hmacsha256;
 use hmacsha256::HMACSHA256;
 
-#[derive(Debug)]
-struct Message {
-    id: i64,
-    topic_id: i64,
-    timestamp: i64,
-    data: Option<Vec<u8>>,
-    bbr_digest: Option<Vec<u8>>,
-}
+use crate::proto::bbr::hash;
+use protobuf::{parse_from_bytes,Message};
+
+// #[derive(Debug)]
+// struct Message {
+//     id: i64,
+//     topic_id: i64,
+//     timestamp: i64,
+//     data: Option<Vec<u8>>,
+//     bbr_digest: Option<Vec<u8>>,
+// }
 
 #[derive(Debug)]
 struct Topic {
@@ -88,21 +91,27 @@ pub fn get_unix_timestamp_us() -> i64 {
 pub fn convert(input: PathBuf) -> Result<()> {
     let mut conn = Connection::open(&input)?;
 
+    let hmac_key = HMACSHA256::generate_key();
     let mut meta = Meta {
         id: 0,
         name: String::from(
             input.file_stem().unwrap()
             .to_str().unwrap()),
         timestamp: get_unix_timestamp_us(),
-        bbr_nonce: Some(
-            HMACSHA256::generate_key()
+        bbr_nonce: Some(hmac_key
                 .get_bytes()
+                .clone()
                 .to_vec()),
         bbr_digest: None,
     };
 
-    // FIXME: compute digest from name and timestamp
-    meta.bbr_digest = meta.bbr_nonce.clone();
+    let mut bag_info = hash::BagInfo::new();
+    bag_info.set_name(meta.name.clone());
+    bag_info.set_stamp(meta.timestamp.clone());
+    meta.bbr_digest = Some(
+        HMACSHA256::create_tag(
+            &bag_info.write_to_bytes().unwrap(),
+            &hmac_key).to_vec());
 
     // create_meta(&mut conn)?;
     create_meta(&mut conn, &meta)?;

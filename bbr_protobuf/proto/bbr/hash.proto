@@ -30,3 +30,9 @@ message MessageInfo {
   int64 stamp = 1;
   // bytes data = 2;
 }
+
+message BagInfo {
+  string name = 1;
+  int64 stamp = 2;
+  // bytes data = 2;
+}
