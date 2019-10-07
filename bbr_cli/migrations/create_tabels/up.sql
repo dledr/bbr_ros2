@@ -1,12 +1,12 @@
 CREATE TABLE metas (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
     timestamp INTEGER NOT NULL,
     bbr_nonce BLOB NOT NULL,
     bbr_digest BLOB NOT NULL);
 
 CREATE TABLE messages(
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY NOT NULL,
     topic_id INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
     data BLOB NOT NULL);
@@ -14,7 +14,7 @@ CREATE INDEX timestamp_idx ON
     messages (timestamp ASC);
 
 CREATE TABLE topics(
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     serialization_format TEXT NOT NULL,
