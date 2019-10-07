@@ -1,17 +1,17 @@
 table! {
     messages (id) {
-        id -> Nullable<Integer>,
-        topic_id -> Integer,
-        timestamp -> Integer,
+        id -> Nullable<BigInt>,
+        topic_id -> BigInt,
+        timestamp -> BigInt,
         data -> Binary,
     }
 }
 
 table! {
     metas (id) {
-        id -> Nullable<Integer>,
+        id -> Nullable<BigInt>,
         name -> Text,
-        timestamp -> Integer,
+        timestamp -> BigInt,
         bbr_nonce -> Binary,
         bbr_digest -> Binary,
     }
@@ -19,7 +19,7 @@ table! {
 
 table! {
     topics (id) {
-        id -> Nullable<Integer>,
+        id -> Nullable<BigInt>,
         name -> Text,
         #[sql_name = "type"]
         type_ -> Text,
