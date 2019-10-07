@@ -9,7 +9,8 @@ CREATE TABLE messages(
     id INTEGER PRIMARY KEY NOT NULL,
     topic_id INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
-    data BLOB NOT NULL);
+    data BLOB NOT NULL,
+    bbr_digest BLOB);
 CREATE INDEX timestamp_idx ON
     messages (timestamp ASC);
 

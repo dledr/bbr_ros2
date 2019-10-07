@@ -4,6 +4,7 @@ table! {
         topic_id -> BigInt,
         timestamp -> BigInt,
         data -> Binary,
+        bbr_digest -> Nullable<Binary>,
     }
 }
 
