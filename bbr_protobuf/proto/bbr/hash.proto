@@ -17,7 +17,7 @@ syntax = "proto3";
 
 
 message TopicFormat {
-  string type = 1;
+  string serialization_type = 1;
   string serialization_format = 2;
 }
 
