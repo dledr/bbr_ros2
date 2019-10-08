@@ -38,5 +38,8 @@ fn main() {
             bbr_digest: result.bbr_digest,
         };
         // topic_form.save_changes(&conn);
+        diesel::update(&topic_form)
+            .set(&topic_form)
+            .execute(&conn);
     }
 }

@@ -117,6 +117,9 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn Error>> {
             bbr_digest: tag.to_vec(),
         };
         // topic_form.save_changes(&conn)?;
+        diesel::update(&topic_form)
+            .set(&topic_form)
+            .execute(&conn)?;
         println!("Found topic {:?}", &result.name);
         hmac_key = HMACSHA256::clone_key_from_slice(&tag);
     }
