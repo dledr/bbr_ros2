@@ -7,6 +7,7 @@ use bbr_cli::*;
 
 use dotenv::dotenv;
 use std::env;
+use std::error::Error;
 
 pub fn establish_connection() -> SqliteConnection {
     dotenv().ok();
@@ -16,7 +17,7 @@ pub fn establish_connection() -> SqliteConnection {
         .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     use crate::schema::topics;
 
     let conn = establish_connection();
@@ -40,6 +41,7 @@ fn main() {
         // topic_form.save_changes(&conn);
         diesel::update(&topic_form)
             .set(&topic_form)
-            .execute(&conn);
+            .execute(&conn)?;
     }
+    Ok(())
 }
