@@ -1,10 +1,9 @@
 use diesel::prelude::*;
-// use diesel::sqlite::Sqlite;
 
-// use crate::models::topic::Topic;
-// use crate::schema::topics;
+use crate::models::topic::*;
+use crate::models::meta::*;
 
-extern crate chrono;
+// extern crate chrono;
 use chrono::prelude::Utc;
 
 use std::error::Error;
@@ -14,146 +13,126 @@ mod hmacsha256;
 use hmacsha256::HMACSHA256;
 
 use crate::proto::bbr::hash;
-use protobuf::{parse_from_bytes,Message};
+use protobuf::{Message};
+// use protobuf::{parse_from_bytes,Message};
 
 
-// pub fn alter_tables(conn: &mut Connection) -> Result<()> {
-//     let tx = conn.transaction()?;
-//     tx.execute("
-//         ALTER TABLE topics ADD COLUMN
-//             bbr_nonce BLOB NOT NULL DEFAULT
-//             x'0000000000000000000000000000000000000000000000000000000000000000';",
-//         NO_PARAMS)?;
-//     tx.execute("
-//         ALTER TABLE topics ADD COLUMN
-//             bbr_digest BLOB NOT NULL DEFAULT
-//             x'0000000000000000000000000000000000000000000000000000000000000000';",
-//         NO_PARAMS)?;
-//     tx.commit()
-// }
+pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Box<dyn Error>> {
+    conn.transaction::<_, diesel::result::Error, _>(|| {
+        conn.execute("
+            ALTER TABLE topics ADD COLUMN
+                bbr_nonce BLOB NOT NULL DEFAULT
+                x'0000000000000000000000000000000000000000000000000000000000000000';")?;
+        conn.execute("
+            ALTER TABLE topics ADD COLUMN
+                bbr_digest BLOB NOT NULL DEFAULT
+                x'0000000000000000000000000000000000000000000000000000000000000000';")?;
+        Ok(())
+    })?;
+    Ok(())
+}
 
-// fn create_meta(conn: &mut Connection, meta: &Meta) -> Result<()> {
-//     let tx = conn.transaction()?;
-//     tx.execute("
-//         CREATE TABLE metas (
-//             id INTEGER PRIMARY KEY,
-//             name TEXT NOT NULL,
-//             timestamp INTEGER NOT NULL,
-//             bbr_nonce BLOB NOT NULL,
-//             bbr_digest BLOB NOT NULL)",
-//         NO_PARAMS)?;
-//     tx.execute("
-//         INSERT INTO metas (
-//             name,
-//             timestamp,
-//             bbr_nonce,
-//             bbr_digest)
-//         VALUES (?1, ?2, ?3, ?4)",
-//         params![
-//             meta.name,
-//             meta.timestamp,
-//             meta.bbr_nonce,
-//             meta.bbr_digest])?;
-//     tx.commit()
-// }
+pub fn create_tables(conn: &SqliteConnection) -> Result<(), Box<dyn Error>> {
+    conn.transaction::<_, diesel::result::Error, _>(|| {
+        conn.execute("
+            CREATE TABLE metas (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                timestamp INTEGER NOT NULL,
+                bbr_nonce BLOB NOT NULL,
+                bbr_digest BLOB NOT NULL)")?;
+        Ok(())
+    })?;
+    Ok(())
+}
 
 pub fn get_unix_timestamp_us() -> i64 {
     let now = Utc::now();
     now.timestamp_nanos() as i64
 }
 
-pub fn convert(input: PathBuf) -> Result<(), Box<dyn Error>> {
+pub fn establish_connection(input: &PathBuf) -> SqliteConnection {
     let database_url = &input.to_str().unwrap();
-    let connection = SqliteConnection::establish(&database_url)
-        .expect(&format!("Error connecting to {}", &database_url));
-    
-    // use crate::schema::topics::dsl::*;
+    SqliteConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", &database_url))
+}
 
-    // let results = topics::table.load::<Topic>(&connection)
+pub fn convert(input: PathBuf) -> Result<(), Box<dyn Error>> {
+    // use diesel::result::Error;
+    use crate::schema::metas;
+    use crate::schema::topics;
+    let conn = establish_connection(&input);
+
+    alter_tables(&conn)?;
+    create_tables(&conn)?;
+
+    // let results = topics
+    //     // .filter(published.eq(true))
+    //     // .limit(5)
+    //     .load::<Topic>(&conn)
     //     .expect("Error loading topics");
-    
-    // let results = topics.filter(topic.name.eq("/chatter"))
-    //     .limit(5)
-    //     .load::<Topic>(&connection)
-    //     .expect("Error loading posts");
 
-    // println!("Displaying {} posts", results.len());
-    // for post in results {
-    //     println!("{}", post.title);
+    // println!("Displaying {} topics", results.len());
+    // for topic in results {
+    //     println!("{}", topic.name);
+    //     println!("  {}", topic.serialization_format);
     //     println!("----------\n");
-    //     println!("{}", post.body);
     // }
 
-    // let mut conn = Connection::open(&input)?;
+    let name = String::from(input.file_stem()
+        .unwrap().to_str().unwrap());
+    let timestamp = get_unix_timestamp_us();
 
-    // let hmac_key = HMACSHA256::generate_key();
-    // let mut meta = Meta {
-    //     id: 0,
-    //     name: String::from(
-    //         input.file_stem().unwrap()
-    //         .to_str().unwrap()),
-    //     timestamp: get_unix_timestamp_us(),
-    //     bbr_nonce: Some(hmac_key
-    //             .get_bytes()
-    //             .clone()
-    //             .to_vec()),
-    //     bbr_digest: None,
-    // };
+    let mut bag_info = hash::BagInfo::new();
+    bag_info.set_name(name.clone());
+    bag_info.set_stamp(timestamp.clone());
 
-    // let mut bag_info = hash::BagInfo::new();
-    // bag_info.set_name(meta.name.clone());
-    // bag_info.set_stamp(meta.timestamp.clone());
-    // meta.bbr_digest = Some(
-    //     HMACSHA256::create_tag(
-    //         &bag_info.write_to_bytes().unwrap(),
-    //         &hmac_key).to_vec());
+    let bbr_nonce = HMACSHA256::generate_key();
+    let bbr_digest = HMACSHA256::create_tag(
+            &bag_info.write_to_bytes().unwrap(),
+            &bbr_nonce).to_vec();
 
-    // // create_meta(&mut conn)?;
-    // create_meta(&mut conn, &meta)?;
-    // alter_tables(&mut conn)?;
+    let new_meta = NewMeta {
+        name: name,
+        timestamp: timestamp,
+        bbr_nonce: bbr_nonce
+                .get_bytes()
+                .clone()
+                .to_vec(),
+        bbr_digest: bbr_digest,
+    };
 
-    // let mut topics_stmt = conn.prepare("
-    //     SELECT
-    //         id,
-    //         name,
-    //         type,
-    //         serialization_format
-    //     FROM topics")?;
+    diesel::insert_into(metas::table)
+        .values(vec![&new_meta])
+        .execute(&conn)?;
+    
+    let results = topics::table
+        .load::<Topic>(&conn)
+        .expect("Error loading topics");
+    
+    let mut hmac_key = HMACSHA256::clone_key_from_slice(
+        new_meta.bbr_digest.as_slice());
+    for result in results {
 
-    // let topics_iter = topics_stmt.query_map(params![], |row| {
-    //     Ok(Topic {
-    //         id: row.get(0)?,
-    //         name: row.get(1)?,
-    //         serialization_type: row.get(2)?,
-    //         serialization_format: row.get(3)?,
-    //         bbr_nonce: None,
-    //         bbr_digest: None,
-    //     })
-    // })?;
+        let mut topic_format = hash::TopicFormat::new();
+        topic_format.set_serialization_type(
+            result.serialization_type.clone());
+        topic_format.set_serialization_format(
+            result.serialization_format.clone());
 
-    // let mut _conn = Connection::open(&input)?;
-    // let tx = _conn.transaction()?;
+        let tag = HMACSHA256::create_tag(
+            &topic_format.write_to_bytes().unwrap(),
+            &hmac_key);
 
-    // let mut hmac_key = HMACSHA256::clone_key_from_slice(
-    //     meta.bbr_digest.unwrap().as_slice());
-    // for topic_result in topics_iter {
-    //     let mut topic = topic_result.unwrap();
-    //     let tag = HMACSHA256::create_tag(
-    //         &topic.name.as_bytes(),
-    //         &hmac_key);
-    //     topic.bbr_nonce = Some(hmac_key.get_bytes().to_vec());
-    //     topic.bbr_digest = Some(tag.to_vec());
-    //     println!("Found topic {:?}", &topic.name);
-    //     tx.execute("
-    //         UPDATE topics SET 
-    //             bbr_nonce = (?1),
-    //             bbr_digest = (?2)
-    //         WHERE id = (?3)",
-    //         params![topic.bbr_nonce, topic.bbr_digest, topic.id],
-    //     )?;
-    //     hmac_key = HMACSHA256::clone_key_from_slice(&tag);
-    // }
-    // tx.commit()?;
+        let topic_form = TopicForm{
+            id: result.id,
+            bbr_nonce: hmac_key.get_bytes().to_vec(),
+            bbr_digest: tag.to_vec(),
+        };
+        // topic_form.save_changes(&conn)?;
+        println!("Found topic {:?}", &result.name);
+        hmac_key = HMACSHA256::clone_key_from_slice(&tag);
+    }
 
     println!("Done");
     Ok(())
