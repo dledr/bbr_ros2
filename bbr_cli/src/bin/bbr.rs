@@ -1,4 +1,4 @@
-use bbr_cli::{cli};
+use bbr_cli::cli;
 // use exitfailure::ExitFailure;
 // use failure::ResultExt;
 use std::error::Error;

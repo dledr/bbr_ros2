@@ -1,5 +1,3 @@
-extern crate sodiumoxide;
-
 use sodiumoxide::crypto::auth::hmacsha256;
 // use utils::byte_array::_clone_into_array;
 
