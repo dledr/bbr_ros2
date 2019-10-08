@@ -3,8 +3,8 @@ use diesel::result::Error;
 
 use crate::models::meta::*;
 use crate::models::topic::*;
+use crate::proto::bbr::hash;
 
-// extern crate chrono;
 use chrono::prelude::Utc;
 
 // use std::error::Error;
@@ -13,20 +13,16 @@ use std::path::PathBuf;
 mod hmacsha256;
 use hmacsha256::HMACSHA256;
 
-use crate::proto::bbr::hash;
 use protobuf::Message;
-// use protobuf::{parse_from_bytes,Message};
 
 pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
     conn.execute(
-        "
-        ALTER TABLE topics ADD COLUMN
+        "ALTER TABLE topics ADD COLUMN
             bbr_nonce BLOB NOT NULL DEFAULT
             x'0000000000000000000000000000000000000000000000000000000000000000';",
     )?;
     conn.execute(
-        "
-        ALTER TABLE topics ADD COLUMN
+        "ALTER TABLE topics ADD COLUMN
             bbr_digest BLOB NOT NULL DEFAULT
             x'0000000000000000000000000000000000000000000000000000000000000000';",
     )?;
@@ -35,8 +31,7 @@ pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
 
 pub fn create_tables(conn: &SqliteConnection) -> Result<(), Error> {
     conn.execute(
-        "
-        CREATE TABLE metas (
+        "CREATE TABLE metas (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
@@ -101,7 +96,6 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         let mut topic_format = hash::TopicFormat::new();
         topic_format.set_serialization_type(result.serialization_type.clone());
         topic_format.set_serialization_format(result.serialization_format.clone());
-
         let tag = HMACSHA256::create_tag(&topic_format.write_to_bytes().unwrap(), &hmac_key);
 
         let topic_form = TopicForm {
