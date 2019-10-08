@@ -1,8 +1,9 @@
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use crate::models::meta::*;
-use crate::models::topic::*;
+use crate::models::message;
+use crate::models::meta;
+use crate::models::topic;
 use crate::proto::bbr::hash;
 
 use chrono::prelude::Utc;
@@ -53,7 +54,7 @@ pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>)
     let bbr_digest =
         HMACSHA256::create_tag(&bag_info.write_to_bytes().unwrap(), &bbr_nonce).to_vec();
 
-    let new_meta = NewMeta {
+    let new_meta = meta::NewMeta {
         name: name,
         timestamp: timestamp,
         bbr_nonce: bbr_nonce.get_bytes().clone().to_vec(),
@@ -79,6 +80,7 @@ pub fn establish_connection(input: &PathBuf) -> SqliteConnection {
 
 pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     use crate::schema::topics;
+    use crate::schema::messages;
     let conn = establish_connection(&input);
 
     let bbr_digest = conn.transaction::<_, Error, _>(|| {
@@ -87,19 +89,19 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         Ok(insert_meta(&conn, &input)?)
     })?;
 
-    let results = topics::table
-        .load::<Topic>(&conn)
+    let topic_results = topics::table
+        .load::<topic::Topic>(&conn)
         .expect("Error loading topics");
 
     let mut hmac_key = HMACSHA256::clone_key_from_slice(bbr_digest.as_slice());
-    for result in results {
+    for topic_result in topic_results {
         let mut topic_format = hash::TopicFormat::new();
-        topic_format.set_serialization_type(result.serialization_type.clone());
-        topic_format.set_serialization_format(result.serialization_format.clone());
+        topic_format.set_serialization_type(topic_result.serialization_type.clone());
+        topic_format.set_serialization_format(topic_result.serialization_format.clone());
         let tag = HMACSHA256::create_tag(&topic_format.write_to_bytes().unwrap(), &hmac_key);
 
-        let topic_form = TopicForm {
-            id: result.id,
+        let topic_form = topic::TopicForm {
+            id: topic_result.id,
             bbr_nonce: hmac_key.get_bytes().to_vec(),
             bbr_digest: tag.to_vec(),
         };
@@ -107,7 +109,7 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         diesel::update(&topic_form)
             .set(&topic_form)
             .execute(&conn)?;
-        println!("Found topic {:?}", &result.name);
+        println!("Found topic {:?}", &topic_result.name);
         hmac_key = HMACSHA256::clone_key_from_slice(&tag);
     }
 
