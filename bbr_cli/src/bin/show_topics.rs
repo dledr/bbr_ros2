@@ -1,9 +1,9 @@
-extern crate diesel;
 extern crate bbr_cli;
+extern crate diesel;
 
 use self::models::topic::*;
-use diesel::prelude::*;
 use bbr_cli::*;
+use diesel::prelude::*;
 
 use dotenv::dotenv;
 use std::env;
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("----------\n");
         println!("{}", result.serialization_format);
 
-        let topic_form = TopicForm{
+        let topic_form = TopicForm {
             id: result.id,
             bbr_nonce: result.bbr_nonce,
             bbr_digest: result.bbr_digest,

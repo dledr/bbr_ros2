@@ -2,18 +2,13 @@ mod bag;
 mod completions;
 
 use std::error::Error;
-use structopt::{StructOpt};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "bbr", about = "A command line interface for bbr")]
 pub struct Opt {
-
     #[structopt(subcommand)]
     cmd: Option<Command>,
-
-    // /// enable debug mode
-    // #[structopt(short, long)]
-    // debug: bool,
 
     /// Enable verbose output
     #[structopt(short, long)]
@@ -21,20 +16,20 @@ pub struct Opt {
 }
 
 impl Opt {
-    pub fn from_args() -> Opt { <Opt as StructOpt>::from_args() }
+    pub fn from_args() -> Opt {
+        <Opt as StructOpt>::from_args()
+    }
 
     pub fn handle(opt: Opt) -> Result<(), Box<dyn Error>> {
-
         match opt.cmd.unwrap() {
             Command::Bag(bag) => {
                 bag::Bag::handle(bag)?;
             }
             Command::Completions(completions) => {
                 completions::Completions::handle(completions);
-            }
-            // _ => {
-            //     println!("This subcommand is not yet implemented.");
-            // }
+            } // _ => {
+              //     println!("This subcommand is not yet implemented.");
+              // }
         }
 
         Ok(())
@@ -49,6 +44,7 @@ enum Command {
         about = "Completions for bbr",
         usage = "Examples:
         $ source <(bbr completions bash)
-        $ bbr completions fish | source")]
+        $ bbr completions fish | source"
+    )]
     Completions(completions::Completions),
 }

@@ -1,8 +1,8 @@
 use diesel::prelude::*;
 use diesel::result::Error;
 
-use crate::models::topic::*;
 use crate::models::meta::*;
+use crate::models::topic::*;
 
 // extern crate chrono;
 use chrono::prelude::Utc;
@@ -14,54 +14,54 @@ mod hmacsha256;
 use hmacsha256::HMACSHA256;
 
 use crate::proto::bbr::hash;
-use protobuf::{Message};
+use protobuf::Message;
 // use protobuf::{parse_from_bytes,Message};
 
-
 pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
-    conn.execute("
+    conn.execute(
+        "
         ALTER TABLE topics ADD COLUMN
             bbr_nonce BLOB NOT NULL DEFAULT
-            x'0000000000000000000000000000000000000000000000000000000000000000';")?;
-    conn.execute("
+            x'0000000000000000000000000000000000000000000000000000000000000000';",
+    )?;
+    conn.execute(
+        "
         ALTER TABLE topics ADD COLUMN
             bbr_digest BLOB NOT NULL DEFAULT
-            x'0000000000000000000000000000000000000000000000000000000000000000';")?;
+            x'0000000000000000000000000000000000000000000000000000000000000000';",
+    )?;
     Ok(())
 }
 
 pub fn create_tables(conn: &SqliteConnection) -> Result<(), Error> {
-    conn.execute("
+    conn.execute(
+        "
         CREATE TABLE metas (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
             bbr_nonce BLOB NOT NULL,
-            bbr_digest BLOB NOT NULL)")?;
+            bbr_digest BLOB NOT NULL)",
+    )?;
     Ok(())
 }
 
 pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>), Error> {
     use crate::schema::metas;
-    let name = String::from(input.file_stem()
-        .unwrap().to_str().unwrap());
+    let name = String::from(input.file_stem().unwrap().to_str().unwrap());
     let timestamp = get_unix_timestamp_us();
 
     let mut bag_info = hash::BagInfo::new();
     bag_info.set_name(name.clone());
     bag_info.set_stamp(timestamp.clone());
     let bbr_nonce = HMACSHA256::generate_key();
-    let bbr_digest = HMACSHA256::create_tag(
-            &bag_info.write_to_bytes().unwrap(),
-            &bbr_nonce).to_vec();
+    let bbr_digest =
+        HMACSHA256::create_tag(&bag_info.write_to_bytes().unwrap(), &bbr_nonce).to_vec();
 
     let new_meta = NewMeta {
         name: name,
         timestamp: timestamp,
-        bbr_nonce: bbr_nonce
-                .get_bytes()
-                .clone()
-                .to_vec(),
+        bbr_nonce: bbr_nonce.get_bytes().clone().to_vec(),
         bbr_digest: bbr_digest.clone(),
     };
 
@@ -95,22 +95,16 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     let results = topics::table
         .load::<Topic>(&conn)
         .expect("Error loading topics");
-    
-    let mut hmac_key = HMACSHA256::clone_key_from_slice(
-        bbr_digest.as_slice());
+
+    let mut hmac_key = HMACSHA256::clone_key_from_slice(bbr_digest.as_slice());
     for result in results {
-
         let mut topic_format = hash::TopicFormat::new();
-        topic_format.set_serialization_type(
-            result.serialization_type.clone());
-        topic_format.set_serialization_format(
-            result.serialization_format.clone());
+        topic_format.set_serialization_type(result.serialization_type.clone());
+        topic_format.set_serialization_format(result.serialization_format.clone());
 
-        let tag = HMACSHA256::create_tag(
-            &topic_format.write_to_bytes().unwrap(),
-            &hmac_key);
+        let tag = HMACSHA256::create_tag(&topic_format.write_to_bytes().unwrap(), &hmac_key);
 
-        let topic_form = TopicForm{
+        let topic_form = TopicForm {
             id: result.id,
             bbr_nonce: hmac_key.get_bytes().to_vec(),
             bbr_digest: tag.to_vec(),

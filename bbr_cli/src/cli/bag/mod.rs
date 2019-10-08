@@ -2,7 +2,7 @@ use crate::api;
 
 use std::error::Error;
 use std::path::PathBuf;
-use structopt::{StructOpt};
+use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
 pub enum Bag {
@@ -16,12 +16,10 @@ pub enum Bag {
     Finalize(Finalize),
 }
 
-impl Bag { 
+impl Bag {
     pub fn handle(opt: Bag) -> Result<(), Box<dyn Error>> {
         match opt {
-            Bag::Convert { 0: convert_opt} => {
-                api::convert(convert_opt.input)?
-            }
+            Bag::Convert { 0: convert_opt } => api::convert(convert_opt.input)?,
             _ => {
                 println!("This subcommand is not yet implemented.");
             }
@@ -32,7 +30,6 @@ impl Bag {
 
 #[derive(Debug, StructOpt)]
 pub struct Check {
-
     /// Input file
     #[structopt(short, long)]
     input: PathBuf,
@@ -44,7 +41,6 @@ pub struct Check {
 
 #[derive(Debug, StructOpt)]
 pub struct Convert {
-
     /// Input file
     #[structopt(short, long)]
     pub input: PathBuf,
@@ -52,7 +48,6 @@ pub struct Convert {
 
 #[derive(Debug, StructOpt)]
 pub struct Finalize {
-
     /// Input file
     #[structopt(short, long)]
     input: PathBuf,
