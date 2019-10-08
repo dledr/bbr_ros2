@@ -1,4 +1,4 @@
-#[derive(Debug, Queryable)]
+#[derive(Debug, diesel::Queryable)]
 pub struct Message {
     pub id: i64,
     pub topic_id: i64,
