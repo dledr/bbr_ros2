@@ -66,19 +66,6 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn Error>> {
     alter_tables(&conn)?;
     create_tables(&conn)?;
 
-    // let results = topics
-    //     // .filter(published.eq(true))
-    //     // .limit(5)
-    //     .load::<Topic>(&conn)
-    //     .expect("Error loading topics");
-
-    // println!("Displaying {} topics", results.len());
-    // for topic in results {
-    //     println!("{}", topic.name);
-    //     println!("  {}", topic.serialization_format);
-    //     println!("----------\n");
-    // }
-
     let name = String::from(input.file_stem()
         .unwrap().to_str().unwrap());
     let timestamp = get_unix_timestamp_us();
