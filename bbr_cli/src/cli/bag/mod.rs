@@ -1,6 +1,6 @@
 use crate::api;
 
-use rusqlite::{Result};
+use std::error::Error;
 use std::path::PathBuf;
 use structopt::{StructOpt};
 
@@ -17,7 +17,7 @@ pub enum Bag {
 }
 
 impl Bag { 
-    pub fn handle(opt: Bag) -> Result<()> {
+    pub fn handle(opt: Bag) -> Result<(), Box<dyn Error>> {
         match opt {
             Bag::Convert { 0: convert_opt} => {
                 api::convert(convert_opt.input)?

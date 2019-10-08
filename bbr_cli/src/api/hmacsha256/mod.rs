@@ -1,5 +1,3 @@
-extern crate sodiumoxide;
-
 use sodiumoxide::crypto::auth::hmacsha256;
 // use utils::byte_array::_clone_into_array;
 
@@ -28,7 +26,7 @@ impl HMACSHA256Key {
 pub struct HMACSHA256 {}
 
 impl HMACSHA256 {
-    pub const TAGBYTES: usize = hmacsha256::TAGBYTES;
+    // pub const TAGBYTES: usize = hmacsha256::TAGBYTES;
 
     pub fn generate_key() -> HMACSHA256Key {
         HMACSHA256Key { key: hmacsha256::gen_key() }

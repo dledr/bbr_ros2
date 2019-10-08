@@ -1,7 +1,7 @@
 mod bag;
 mod completions;
 
-use rusqlite::{Result};
+use std::error::Error;
 use structopt::{StructOpt};
 
 #[derive(Debug, StructOpt)]
@@ -23,7 +23,7 @@ pub struct Opt {
 impl Opt {
     pub fn from_args() -> Opt { <Opt as StructOpt>::from_args() }
 
-    pub fn handle(opt: Opt) -> Result<()> {
+    pub fn handle(opt: Opt) -> Result<(), Box<dyn Error>> {
 
         match opt.cmd.unwrap() {
             Command::Bag(bag) => {

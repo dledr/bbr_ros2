@@ -1,86 +1,74 @@
-extern crate chrono;
-extern crate rusqlite;
+use diesel::prelude::*;
+use diesel::result::Error;
 
+use crate::models::topic::*;
+use crate::models::meta::*;
+
+// extern crate chrono;
 use chrono::prelude::Utc;
 
+// use std::error::Error;
 use std::path::PathBuf;
-
-use rusqlite::NO_PARAMS;
-// use rusqlite::types::ToSql;
-use rusqlite::{params, Connection, Result};
 
 mod hmacsha256;
 use hmacsha256::HMACSHA256;
 
 use crate::proto::bbr::hash;
-use protobuf::{parse_from_bytes,Message};
+use protobuf::{Message};
+// use protobuf::{parse_from_bytes,Message};
 
-// #[derive(Debug)]
-// struct Message {
-//     id: i64,
-//     topic_id: i64,
-//     timestamp: i64,
-//     data: Option<Vec<u8>>,
-//     bbr_digest: Option<Vec<u8>>,
-// }
 
-#[derive(Debug)]
-struct Topic {
-    id: i64,
-    name: String,
-    serialization_type: String,
-    serialization_format: String,
-    bbr_nonce: Option<Vec<u8>>,
-    bbr_digest: Option<Vec<u8>>,
-}
-
-#[derive(Debug)]
-struct Meta {
-    id: i64,
-    name: String,
-    timestamp: i64,
-    bbr_nonce: Option<Vec<u8>>,
-    bbr_digest: Option<Vec<u8>>,
-}
-
-pub fn alter_tables(conn: &mut Connection) -> Result<()> {
-    let tx = conn.transaction()?;
-    tx.execute("
+pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
+    conn.execute("
         ALTER TABLE topics ADD COLUMN
             bbr_nonce BLOB NOT NULL DEFAULT
-            x'0000000000000000000000000000000000000000000000000000000000000000';",
-        NO_PARAMS)?;
-    tx.execute("
+            x'0000000000000000000000000000000000000000000000000000000000000000';")?;
+    conn.execute("
         ALTER TABLE topics ADD COLUMN
             bbr_digest BLOB NOT NULL DEFAULT
-            x'0000000000000000000000000000000000000000000000000000000000000000';",
-        NO_PARAMS)?;
-    tx.commit()
+            x'0000000000000000000000000000000000000000000000000000000000000000';")?;
+    Ok(())
 }
 
-fn create_meta(conn: &mut Connection, meta: &Meta) -> Result<()> {
-    let tx = conn.transaction()?;
-    tx.execute("
+pub fn create_tables(conn: &SqliteConnection) -> Result<(), Error> {
+    conn.execute("
         CREATE TABLE metas (
             id INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
             timestamp INTEGER NOT NULL,
             bbr_nonce BLOB NOT NULL,
-            bbr_digest BLOB NOT NULL)",
-        NO_PARAMS)?;
-    tx.execute("
-        INSERT INTO metas (
-            name,
-            timestamp,
-            bbr_nonce,
-            bbr_digest)
-        VALUES (?1, ?2, ?3, ?4)",
-        params![
-            meta.name,
-            meta.timestamp,
-            meta.bbr_nonce,
-            meta.bbr_digest])?;
-    tx.commit()
+            bbr_digest BLOB NOT NULL)")?;
+    Ok(())
+}
+
+pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>), Error> {
+    use crate::schema::metas;
+    let name = String::from(input.file_stem()
+        .unwrap().to_str().unwrap());
+    let timestamp = get_unix_timestamp_us();
+
+    let mut bag_info = hash::BagInfo::new();
+    bag_info.set_name(name.clone());
+    bag_info.set_stamp(timestamp.clone());
+    let bbr_nonce = HMACSHA256::generate_key();
+    let bbr_digest = HMACSHA256::create_tag(
+            &bag_info.write_to_bytes().unwrap(),
+            &bbr_nonce).to_vec();
+
+    let new_meta = NewMeta {
+        name: name,
+        timestamp: timestamp,
+        bbr_nonce: bbr_nonce
+                .get_bytes()
+                .clone()
+                .to_vec(),
+        bbr_digest: bbr_digest.clone(),
+    };
+
+    diesel::insert_into(metas::table)
+        .values(vec![&new_meta])
+        .execute(conn)?;
+    Ok(bbr_digest)
 }
 
 pub fn get_unix_timestamp_us() -> i64 {
@@ -88,77 +76,52 @@ pub fn get_unix_timestamp_us() -> i64 {
     now.timestamp_nanos() as i64
 }
 
-pub fn convert(input: PathBuf) -> Result<()> {
-    let mut conn = Connection::open(&input)?;
+pub fn establish_connection(input: &PathBuf) -> SqliteConnection {
+    let database_url = &input.to_str().unwrap();
+    SqliteConnection::establish(&database_url)
+        .expect(&format!("Error connecting to {}", &database_url))
+}
 
-    let hmac_key = HMACSHA256::generate_key();
-    let mut meta = Meta {
-        id: 0,
-        name: String::from(
-            input.file_stem().unwrap()
-            .to_str().unwrap()),
-        timestamp: get_unix_timestamp_us(),
-        bbr_nonce: Some(hmac_key
-                .get_bytes()
-                .clone()
-                .to_vec()),
-        bbr_digest: None,
-    };
+pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    use crate::schema::topics;
+    let conn = establish_connection(&input);
 
-    let mut bag_info = hash::BagInfo::new();
-    bag_info.set_name(meta.name.clone());
-    bag_info.set_stamp(meta.timestamp.clone());
-    meta.bbr_digest = Some(
-        HMACSHA256::create_tag(
-            &bag_info.write_to_bytes().unwrap(),
-            &hmac_key).to_vec());
-
-    // create_meta(&mut conn)?;
-    create_meta(&mut conn, &meta)?;
-    alter_tables(&mut conn)?;
-
-    let mut topics_stmt = conn.prepare("
-        SELECT
-            id,
-            name,
-            type,
-            serialization_format
-        FROM topics")?;
-
-    let topics_iter = topics_stmt.query_map(params![], |row| {
-        Ok(Topic {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            serialization_type: row.get(2)?,
-            serialization_format: row.get(3)?,
-            bbr_nonce: None,
-            bbr_digest: None,
-        })
+    let bbr_digest = conn.transaction::<_, Error, _>(|| {
+        alter_tables(&conn)?;
+        create_tables(&conn)?;
+        Ok(insert_meta(&conn, &input)?)
     })?;
 
-    let mut _conn = Connection::open(&input)?;
-    let tx = _conn.transaction()?;
-
+    let results = topics::table
+        .load::<Topic>(&conn)
+        .expect("Error loading topics");
+    
     let mut hmac_key = HMACSHA256::clone_key_from_slice(
-        meta.bbr_digest.unwrap().as_slice());
-    for topic_result in topics_iter {
-        let mut topic = topic_result.unwrap();
+        bbr_digest.as_slice());
+    for result in results {
+
+        let mut topic_format = hash::TopicFormat::new();
+        topic_format.set_serialization_type(
+            result.serialization_type.clone());
+        topic_format.set_serialization_format(
+            result.serialization_format.clone());
+
         let tag = HMACSHA256::create_tag(
-            &topic.name.as_bytes(),
+            &topic_format.write_to_bytes().unwrap(),
             &hmac_key);
-        topic.bbr_nonce = Some(hmac_key.get_bytes().to_vec());
-        topic.bbr_digest = Some(tag.to_vec());
-        println!("Found topic {:?}", &topic.name);
-        tx.execute("
-            UPDATE topics SET 
-                bbr_nonce = (?1),
-                bbr_digest = (?2)
-            WHERE id = (?3)",
-            params![topic.bbr_nonce, topic.bbr_digest, topic.id],
-        )?;
+
+        let topic_form = TopicForm{
+            id: result.id,
+            bbr_nonce: hmac_key.get_bytes().to_vec(),
+            bbr_digest: tag.to_vec(),
+        };
+        // topic_form.save_changes(&conn)?;
+        diesel::update(&topic_form)
+            .set(&topic_form)
+            .execute(&conn)?;
+        println!("Found topic {:?}", &result.name);
         hmac_key = HMACSHA256::clone_key_from_slice(&tag);
     }
-    tx.commit()?;
 
     println!("Done");
     Ok(())
