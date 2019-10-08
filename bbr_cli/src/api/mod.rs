@@ -53,7 +53,7 @@ pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>)
 
     let mut bag_info = hash::BagInfo::new();
     bag_info.set_name(name.clone());
-    bag_info.set_stamp(timestamp.clone());
+    bag_info.set_timestamp(timestamp.clone());
     let bbr_nonce = HMACSHA256::generate_key();
     let bbr_digest =
         HMACSHA256::create_tag(&bag_info.write_to_bytes().unwrap(), &bbr_nonce).to_vec();
@@ -97,24 +97,59 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         .load::<topic::Topic>(&conn)
         .expect("Error loading topics");
 
-    let mut hmac_key = HMACSHA256::clone_key_from_slice(bbr_digest.as_slice());
+    let mut topic_nonce = HMACSHA256::clone_key_from_slice(bbr_digest.as_slice());
     for topic_result in topic_results {
-        let mut topic_format = hash::TopicFormat::new();
-        topic_format.set_serialization_type(topic_result.serialization_type.clone());
-        topic_format.set_serialization_format(topic_result.serialization_format.clone());
-        let tag = HMACSHA256::create_tag(&topic_format.write_to_bytes().unwrap(), &hmac_key);
+        println!("Found topic {:?}", &topic_result.name);
+        let mut topic_info = hash::TopicInfo::new();
+        topic_info.set_serialization_type(topic_result.serialization_type.clone());
+        topic_info.set_serialization_format(topic_result.serialization_format.clone());
+        let topic_digest = HMACSHA256::clone_key_from_slice(
+            &HMACSHA256::create_tag(&topic_info.write_to_bytes().unwrap(), &topic_nonce));
 
         let topic_form = topic::TopicForm {
             id: topic_result.id,
-            bbr_nonce: hmac_key.get_bytes().to_vec(),
-            bbr_digest: tag.to_vec(),
+            bbr_nonce: topic_nonce.get_bytes().to_vec(),
+            bbr_digest: topic_digest.get_bytes().to_vec(),
         };
         // topic_form.save_changes(&conn)?;
         diesel::update(&topic_form)
             .set(&topic_form)
             .execute(&conn)?;
-        println!("Found topic {:?}", &topic_result.name);
-        hmac_key = HMACSHA256::clone_key_from_slice(&tag);
+
+        use crate::schema::messages::dsl::topic_id;
+        let message_results = messages::table
+            .filter(topic_id.eq(topic_result.id))
+            .load::<message::Message>(&conn)
+            .expect("Error loading messages");
+        
+        let mut message_nonce = HMACSHA256::clone_key_from_slice(&topic_digest.get_bytes());
+        for message_result in message_results {
+            println!("Found message {:?}", &message_result.id);
+            let mut message_info = hash::MessageInfo::new();
+            message_info.set_timestamp(message_result.timestamp.clone());
+            let message_info = message_info.write_to_bytes().unwrap();
+            // message_info.append(&message_result.data);
+            let message_digest = HMACSHA256::clone_key_from_slice(
+                &HMACSHA256::create_tag(
+                    &message_info.as_slice(),
+                    &message_nonce));
+
+            let topic_form = topic::TopicForm {
+                id: message_result.id,
+                bbr_nonce: message_nonce.get_bytes().to_vec(),
+                bbr_digest: message_digest.get_bytes().to_vec(),
+            };
+            // topic_form.save_changes(&conn)?;
+            diesel::update(&topic_form)
+                .set(&topic_form)
+                .execute(&conn)?;
+            message_nonce = HMACSHA256::clone_key_from_slice(&message_digest.get_bytes());
+        }
+
+        let mut topic_meta = hash::TopicMeta::new();
+        topic_meta.set_name(topic_result.name.clone());
+        topic_nonce = HMACSHA256::clone_key_from_slice(
+            &HMACSHA256::create_tag(&topic_meta.write_to_bytes().unwrap(), &topic_digest));
     }
 
     println!("Done");

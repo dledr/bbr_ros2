@@ -1,5 +1,6 @@
 use sodiumoxide::crypto::auth::hmacsha256;
 // use utils::byte_array::_clone_into_array;
+// TODO: FIXME: REFACTOR THIS!
 
 // TODO: FIXME: I don't like how we convert slices to array.
 // TODO: FIXME: Size checking and keys validation.

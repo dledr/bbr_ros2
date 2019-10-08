@@ -16,23 +16,23 @@
 syntax = "proto3";
 
 
-message TopicFormat {
+message TopicInfo {
   string serialization_type = 1;
   string serialization_format = 2;
 }
 
-message TopicInfo {
+message TopicMeta {
   string name = 1;
   // string id = 2;
 }
 
 message MessageInfo {
-  int64 stamp = 1;
+  int64 timestamp = 1;
   // bytes data = 2;
 }
 
 message BagInfo {
   string name = 1;
-  int64 stamp = 2;
+  int64 timestamp = 2;
   // bytes data = 2;
 }
