@@ -27,6 +27,10 @@ pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
             bbr_digest BLOB NOT NULL DEFAULT
             x'0000000000000000000000000000000000000000000000000000000000000000';",
     )?;
+    conn.execute(
+        "ALTER TABLE messages ADD COLUMN
+            bbr_digest BLOB;",
+    )?;
     Ok(())
 }
 
