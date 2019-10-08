@@ -23,7 +23,7 @@ table! {
         id -> BigInt,
         name -> Text,
         #[sql_name = "type"]
-        type_ -> Text,
+        serialization_type -> Text,
         serialization_format -> Text,
         bbr_nonce -> Binary,
         bbr_digest -> Binary,
