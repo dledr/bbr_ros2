@@ -17,7 +17,6 @@ use protobuf::Message;
 
 use ring::hmac;
 
-
 pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
     conn.execute(
         "ALTER TABLE topics ADD COLUMN
@@ -59,10 +58,8 @@ pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(hmacsha2
 
     let bbr_nonce = hmacsha256::Key::generate();
     let bbr_digest = hmacsha256::Key::new(
-        hmac::sign(
-            &bbr_nonce.s_key,
-            &bag_info.write_to_bytes().unwrap())
-        .as_ref());
+        hmac::sign(&bbr_nonce.s_key, &bag_info.write_to_bytes().unwrap()).as_ref(),
+    );
 
     let new_meta = meta::NewMeta {
         name: name,
@@ -89,8 +86,8 @@ pub fn establish_connection(input: &PathBuf) -> SqliteConnection {
 }
 
 pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-    use crate::schema::topics;
     use crate::schema::messages;
+    use crate::schema::topics;
     let conn = establish_connection(&input);
 
     let meta_digest = conn.transaction::<_, Error, _>(|| {
@@ -112,10 +109,8 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         topic_info.set_serialization_format(topic_result.serialization_format.clone());
 
         let topic_digest = hmacsha256::Key::new(
-            hmac::sign(
-                &topic_nonce.s_key,
-                &topic_info.write_to_bytes().unwrap())
-            .as_ref());
+            hmac::sign(&topic_nonce.s_key, &topic_info.write_to_bytes().unwrap()).as_ref(),
+        );
 
         let topic_form = topic::TopicForm {
             id: topic_result.id,
@@ -132,7 +127,7 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
             .filter(topic_id.eq(topic_result.id))
             .load::<message::Message>(&conn)
             .expect("Error loading messages");
-        
+
         let mut message_nonce = topic_digest.clone();
         for message_result in message_results {
             println!("Found message {:?}", &message_result.id);
@@ -143,9 +138,7 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
             let mut s_ctx = hmac::Context::with_key(&message_nonce.s_key);
             s_ctx.update(&message_info.write_to_bytes().unwrap());
             s_ctx.update(&message_result.data.as_slice());
-            let message_digest = hmacsha256::Key::new(
-                s_ctx.sign()
-                .as_ref());
+            let message_digest = hmacsha256::Key::new(s_ctx.sign().as_ref());
 
             let topic_form = topic::TopicForm {
                 id: message_result.id,
@@ -163,10 +156,8 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         topic_meta.set_name(topic_result.name.clone());
 
         topic_nonce = hmacsha256::Key::new(
-            hmac::sign(
-                &topic_digest.s_key,
-                &topic_meta.write_to_bytes().unwrap())
-            .as_ref());
+            hmac::sign(&topic_digest.s_key, &topic_meta.write_to_bytes().unwrap()).as_ref(),
+        );
     }
 
     println!("Done");
