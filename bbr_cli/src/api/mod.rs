@@ -117,10 +117,7 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
             bbr_nonce: topic_nonce.to_vec(),
             bbr_digest: topic_digest.to_vec(),
         };
-        // topic_form.save_changes(&conn)?;
-        diesel::update(&topic_form)
-            .set(&topic_form)
-            .execute(&conn)?;
+        topic_form.save_changes::<topic::Topic>(&conn)?;
 
         use crate::schema::messages::dsl::topic_id;
         let message_results = messages::table
@@ -140,15 +137,11 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
             s_ctx.update(&message_result.data.as_slice());
             let message_digest = hmacsha256::Key::new(s_ctx.sign().as_ref());
 
-            let topic_form = topic::TopicForm {
+            let message_form = message::MessageForm {
                 id: message_result.id,
-                bbr_nonce: message_nonce.to_vec(),
-                bbr_digest: message_digest.to_vec(),
+                bbr_digest: Some(message_digest.to_vec()),
             };
-            // topic_form.save_changes(&conn)?;
-            diesel::update(&topic_form)
-                .set(&topic_form)
-                .execute(&conn)?;
+            message_form.save_changes::<message::Message>(&conn)?;
             message_nonce = message_digest.clone();
         }
 
