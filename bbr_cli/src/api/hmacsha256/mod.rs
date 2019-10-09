@@ -1,48 +1,40 @@
-use sodiumoxide::crypto::auth::hmacsha256;
-// use utils::byte_array::_clone_into_array;
-// TODO: FIXME: REFACTOR THIS!
+use ring::{digest, hmac, rand};
 
-// TODO: FIXME: I don't like how we convert slices to array.
-// TODO: FIXME: Size checking and keys validation.
-pub fn _clone_into_array<A, T>(slice: &[T]) -> A
-where
-    A: Sized + Default + AsMut<[T]>,
-    T: Clone,
-{
-    let mut a = Default::default();
-    <A as AsMut<[T]>>::as_mut(&mut a).clone_from_slice(slice);
-    a
+#[derive(Clone)]
+pub struct Key {
+    pub key_value: [u8; digest::SHA256_OUTPUT_LEN],
+    pub s_key: hmac::Key,
 }
 
-pub struct HMACSHA256Key {
-    key: hmacsha256::Key,
-}
-
-impl HMACSHA256Key {
-    pub fn get_bytes(&self) -> &[u8] {
-        &self.key.0
+impl Key {
+    pub fn generate() -> Self {
+        let rng = rand::SystemRandom::new();
+        let key_value: [u8; digest::SHA256_OUTPUT_LEN] = rand::generate(&rng)
+            .expect("msg: &str")
+            .expose();
+        Self::_new(key_value)
     }
-}
-
-pub struct HMACSHA256 {}
-
-impl HMACSHA256 {
-    // pub const TAGBYTES: usize = hmacsha256::TAGBYTES;
-
-    pub fn generate_key() -> HMACSHA256Key {
-        HMACSHA256Key {
-            key: hmacsha256::gen_key(),
+    
+    fn _new(key_value: [u8; digest::SHA256_OUTPUT_LEN]) -> Self {
+        let s_key = hmac::Key::new(hmac::HMAC_SHA256, key_value.as_ref());
+        Self {
+            key_value,
+            s_key,
+        }
+    }
+    
+    pub fn new(key_bytes: &[u8]) -> Self {
+        let mut key_value: [u8; digest::SHA256_OUTPUT_LEN] = Default::default();
+        key_value.copy_from_slice(&key_bytes[..digest::SHA256_OUTPUT_LEN]);
+        let s_key = hmac::Key::new(hmac::HMAC_SHA256, key_value.as_ref());
+        Self {
+            key_value,
+            s_key,
         }
     }
 
-    pub fn clone_key_from_slice(bytes: &[u8]) -> HMACSHA256Key {
-        HMACSHA256Key {
-            key: hmacsha256::Key(_clone_into_array(bytes)),
-        }
-    }
-
-    pub fn create_tag(data: &[u8], key: &HMACSHA256Key) -> [u8; hmacsha256::TAGBYTES] {
-        let hmacsha256::Tag(tag) = hmacsha256::authenticate(data, &key.key);
-        tag
+    #[inline(always)]
+    pub fn to_vec(&self) -> Vec<u8> {
+        self.key_value.to_vec()
     }
 }

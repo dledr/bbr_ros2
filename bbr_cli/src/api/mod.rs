@@ -12,9 +12,11 @@ use chrono::prelude::Utc;
 use std::path::PathBuf;
 
 mod hmacsha256;
-use hmacsha256::HMACSHA256;
 
 use protobuf::Message;
+
+use ring::hmac;
+
 
 pub fn alter_tables(conn: &SqliteConnection) -> Result<(), Error> {
     conn.execute(
@@ -46,7 +48,7 @@ pub fn create_tables(conn: &SqliteConnection) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>), Error> {
+pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(hmacsha256::Key), Error> {
     use crate::schema::metas;
     let name = String::from(input.file_stem().unwrap().to_str().unwrap());
     let timestamp = get_unix_timestamp_us();
@@ -54,15 +56,19 @@ pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(Vec<u8>)
     let mut bag_info = hash::BagInfo::new();
     bag_info.set_name(name.clone());
     bag_info.set_timestamp(timestamp.clone());
-    let bbr_nonce = HMACSHA256::generate_key();
-    let bbr_digest =
-        HMACSHA256::create_tag(&bag_info.write_to_bytes().unwrap(), &bbr_nonce).to_vec();
+
+    let bbr_nonce = hmacsha256::Key::generate();
+    let bbr_digest = hmacsha256::Key::new(
+        hmac::sign(
+            &bbr_nonce.s_key,
+            &bag_info.write_to_bytes().unwrap())
+        .as_ref());
 
     let new_meta = meta::NewMeta {
         name: name,
         timestamp: timestamp,
-        bbr_nonce: bbr_nonce.get_bytes().clone().to_vec(),
-        bbr_digest: bbr_digest.clone(),
+        bbr_nonce: bbr_nonce.to_vec(),
+        bbr_digest: bbr_digest.to_vec(),
     };
 
     diesel::insert_into(metas::table)
@@ -87,7 +93,7 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
     use crate::schema::messages;
     let conn = establish_connection(&input);
 
-    let bbr_digest = conn.transaction::<_, Error, _>(|| {
+    let meta_digest = conn.transaction::<_, Error, _>(|| {
         alter_tables(&conn)?;
         create_tables(&conn)?;
         Ok(insert_meta(&conn, &input)?)
@@ -97,19 +103,24 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         .load::<topic::Topic>(&conn)
         .expect("Error loading topics");
 
-    let mut topic_nonce = HMACSHA256::clone_key_from_slice(bbr_digest.as_slice());
+    let mut topic_nonce = meta_digest.clone();
     for topic_result in topic_results {
         println!("Found topic {:?}", &topic_result.name);
+
         let mut topic_info = hash::TopicInfo::new();
         topic_info.set_serialization_type(topic_result.serialization_type.clone());
         topic_info.set_serialization_format(topic_result.serialization_format.clone());
-        let topic_digest = HMACSHA256::clone_key_from_slice(
-            &HMACSHA256::create_tag(&topic_info.write_to_bytes().unwrap(), &topic_nonce));
+
+        let topic_digest = hmacsha256::Key::new(
+            hmac::sign(
+                &topic_nonce.s_key,
+                &topic_info.write_to_bytes().unwrap())
+            .as_ref());
 
         let topic_form = topic::TopicForm {
             id: topic_result.id,
-            bbr_nonce: topic_nonce.get_bytes().to_vec(),
-            bbr_digest: topic_digest.get_bytes().to_vec(),
+            bbr_nonce: topic_nonce.to_vec(),
+            bbr_digest: topic_digest.to_vec(),
         };
         // topic_form.save_changes(&conn)?;
         diesel::update(&topic_form)
@@ -122,34 +133,40 @@ pub fn convert(input: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
             .load::<message::Message>(&conn)
             .expect("Error loading messages");
         
-        let mut message_nonce = HMACSHA256::clone_key_from_slice(&topic_digest.get_bytes());
+        let mut message_nonce = topic_digest.clone();
         for message_result in message_results {
             println!("Found message {:?}", &message_result.id);
+
             let mut message_info = hash::MessageInfo::new();
             message_info.set_timestamp(message_result.timestamp.clone());
-            let message_info = message_info.write_to_bytes().unwrap();
-            // message_info.append(&message_result.data);
-            let message_digest = HMACSHA256::clone_key_from_slice(
-                &HMACSHA256::create_tag(
-                    &message_info.as_slice(),
-                    &message_nonce));
+
+            let mut s_ctx = hmac::Context::with_key(&message_nonce.s_key);
+            s_ctx.update(&message_info.write_to_bytes().unwrap());
+            s_ctx.update(&message_result.data.as_slice());
+            let message_digest = hmacsha256::Key::new(
+                s_ctx.sign()
+                .as_ref());
 
             let topic_form = topic::TopicForm {
                 id: message_result.id,
-                bbr_nonce: message_nonce.get_bytes().to_vec(),
-                bbr_digest: message_digest.get_bytes().to_vec(),
+                bbr_nonce: message_nonce.to_vec(),
+                bbr_digest: message_digest.to_vec(),
             };
             // topic_form.save_changes(&conn)?;
             diesel::update(&topic_form)
                 .set(&topic_form)
                 .execute(&conn)?;
-            message_nonce = HMACSHA256::clone_key_from_slice(&message_digest.get_bytes());
+            message_nonce = message_digest.clone();
         }
 
         let mut topic_meta = hash::TopicMeta::new();
         topic_meta.set_name(topic_result.name.clone());
-        topic_nonce = HMACSHA256::clone_key_from_slice(
-            &HMACSHA256::create_tag(&topic_meta.write_to_bytes().unwrap(), &topic_digest));
+
+        topic_nonce = hmacsha256::Key::new(
+            hmac::sign(
+                &topic_digest.s_key,
+                &topic_meta.write_to_bytes().unwrap())
+            .as_ref());
     }
 
     println!("Done");
