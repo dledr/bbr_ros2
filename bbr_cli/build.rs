@@ -1,7 +1,6 @@
 extern crate glob;
 extern crate protoc_rust;
 
-use protoc_rust::Customize;
 use std::fs;
 use std::io::Write;
 
@@ -36,16 +35,15 @@ fn run_protoc_rust(path: &String) {
     println!("{:?}", proto_src_files);
     fs::create_dir_all(&out_dir).unwrap();
 
-    protoc_rust::run(protoc_rust::Args {
-        out_dir: &out_dir,
-        input: &proto_src_files
+    protoc_rust::Codegen::new()
+        .out_dir(&out_dir)
+        .inputs(&proto_src_files
             .iter()
             .map(|a| a.as_ref())
-            .collect::<Vec<&str>>(),
-        includes: &[path],
-        customize: Customize::default(),
-    })
-    .expect("unable to run protoc");
+            .collect::<Vec<&str>>())
+        .include(&path)
+        .run()
+        .expect("unable to run protoc");
 
     let mod_rs = [&out_dir, "/mod.rs"].concat();
     let mut file = fs::File::create(&mod_rs).unwrap();
