@@ -47,7 +47,7 @@ pub fn create_tables(conn: &SqliteConnection) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<(hmacsha256::Key), Error> {
+pub fn insert_meta(conn: &SqliteConnection, input: &PathBuf) -> Result<hmacsha256::Key, Error> {
     use crate::schema::metas;
     let name = String::from(input.file_stem().unwrap().to_str().unwrap());
     let timestamp = get_unix_timestamp_us();
